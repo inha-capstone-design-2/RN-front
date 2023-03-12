@@ -25,24 +25,24 @@ export type RootStackParamList = {
 };
 
 function AppInner() {
-  const isLoggedIn = true;
+  const isLoggedIn = false;
 
   return isLoggedIn ? (
     <Tab.Navigator>
       <Tab.Screen
         name="ProgramList"
         component={ProgramListPage}
-        options={{title: '내 오더'}}
+        options={{title: '프로그램 편성표'}}
       />
       <Tab.Screen
         name="Favorites"
         component={FavoritesPage}
-        options={{title: '내 정보'}}
+        options={{title: '즐겨찾기'}}
       />
       <Tab.Screen
         name="ChatList"
         component={ChatListPage}
-        options={{title: '오더 목록'}}
+        options={{title: '채팅방'}}
       />
       <Tab.Screen
         name="Setting"
