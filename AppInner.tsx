@@ -24,32 +24,45 @@ export type RootStackParamList = {
   SignUp: undefined;
 };
 
-function AppInner() {
-  const isLoggedIn = false;
-
-  return isLoggedIn ? (
+function Tabs() {
+  return (
     <Tab.Navigator>
       <Tab.Screen
         name="ProgramList"
         component={ProgramListPage}
-        options={{title: '프로그램 편성표'}}
+        options={{headerShown: false}}
       />
       <Tab.Screen
         name="Favorites"
         component={FavoritesPage}
-        options={{title: '즐겨찾기'}}
+        options={{headerShown: false}}
       />
       <Tab.Screen
         name="ChatList"
         component={ChatListPage}
-        options={{title: '채팅방'}}
+        options={{headerShown: false}}
       />
       <Tab.Screen
         name="Setting"
         component={SettingPage}
-        options={{title: '내 정보'}}
+        options={{headerShown: false}}
       />
     </Tab.Navigator>
+  );
+}
+
+function AppInner() {
+  const isLoggedIn = true;
+
+  return isLoggedIn ? (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Tabs"
+        component={Tabs}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen name="ChatPage" component={ChatPage} />
+    </Stack.Navigator>
   ) : (
     <Stack.Navigator>
       <Stack.Screen
