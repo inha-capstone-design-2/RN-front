@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import {
   StyleSheet,
-  Text, 
-  View, 
+  Text,
+  View,
   TouchableOpacity,
-  TextInput
+  TextInput,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
@@ -13,49 +13,47 @@ const Stack = createNativeStackNavigator();
 
 function SignInPage() {
   const navigation = useNavigation();
-  const [email, setEmail] = useState("");//string
-  const [password, setPassword] = useState("");//string
+  const [email, setEmail] = useState(''); //string
+  const [password, setPassword] = useState(''); //string
 
   const onPressLogin = () => {
-    navigation.navigate('ProgramListPage');
-  }
+    navigation.navigate('ProgramList');
+  };
 
   const onPressJoin = () => {
-    navigation.navigate('SignUpPage');
-  }
+    navigation.navigate('SignUp');
+  };
 
-  const onPressPwdSearch = () => {
-
-  }
+  const onPressPwdSearch = () => {};
 
   return (
     <View style={styles.container}>
       <View style={styles.box}>
         <Text style={styles.text}>이메일</Text>
-          <TextInput 
-            value={email} 
-            onChangeText={(email) => setEmail(email)} 
-            keyboardType="email-address" 
-            autoCapitalize="none" 
-            style={styles.input}
-            placeholder="Email address" 
-          />
+        <TextInput
+          value={email}
+          onChangeText={email => setEmail(email)}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          style={styles.input}
+          placeholder="Email address"
+        />
       </View>
       <View style={styles.box}>
         <Text style={styles.text}>비밀번호</Text>
-        <TextInput 
-          value={password} 
-          onChangeText={(password) => setPassword(password)} 
-          secureTextEntry={true} 
-          autoCapitalize="none" 
+        <TextInput
+          value={password}
+          onChangeText={password => setPassword(password)}
+          secureTextEntry={true}
+          autoCapitalize="none"
           style={styles.input}
-          placeholder="Password"  
+          placeholder="Password"
         />
       </View>
       <TouchableOpacity onPress={onPressLogin}>
         <Text style={styles.login}>로그인</Text>
       </TouchableOpacity>
-      <View style={{flexDirection: "row", justifyContent: 'center'}}>
+      <View style={{flexDirection: 'row', justifyContent: 'center'}}>
         <TouchableOpacity onPress={onPressJoin}>
           <Text style={styles.txtButton}>회원가입</Text>
         </TouchableOpacity>
@@ -68,10 +66,10 @@ function SignInPage() {
         <TouchableOpacity style={styles.kakao}>
           <Text style={styles.kakaoTxt}>카카오 로그인</Text>
         </TouchableOpacity>
-        <TouchableOpacity  style={styles.google}>
+        <TouchableOpacity style={styles.google}>
           <Text style={styles.googleTxt}>Google 계정으로 로그인</Text>
         </TouchableOpacity>
-      </View>     
+      </View>
     </View>
   );
 }
@@ -80,8 +78,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   box: {
@@ -90,19 +88,19 @@ const styles = StyleSheet.create({
 
   text: {
     fontSize: 18,
-    color: "#170F49",
+    color: '#170F49',
     paddingLeft: 18,
-  }, 
+  },
 
   input: {
     backgroundColor: '#fff',
     width: 300,
     height: 55,
     borderWidth: 1,
-    borderColor: "#EFF0F6",
+    borderColor: '#EFF0F6',
     borderRadius: 46,
     fontSize: 18,
-    color: "#6F6C90",
+    color: '#6F6C90',
     paddingLeft: 18,
     margin: 10,
   },
@@ -113,11 +111,11 @@ const styles = StyleSheet.create({
     height: 55,
     borderRadius: 46,
     fontSize: 18,
-    color: "#fff",
+    color: '#fff',
     margin: 10,
-    textAlign: "center",
-    textAlignVertical: "center",
-    shadowColor: "#000",
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -128,7 +126,7 @@ const styles = StyleSheet.create({
   },
 
   txtButton: {
-    color: "#6F6C90",
+    color: '#6F6C90',
     fontSize: 16,
     marginHorizontal: 25,
     marginVertical: 5,
@@ -136,18 +134,18 @@ const styles = StyleSheet.create({
 
   VertialLine: {
     width: 300,
-    borderBottomColor: "#EFF0F6",
+    borderBottomColor: '#EFF0F6',
     borderBottomWidth: 1,
     marginVertical: 20,
   },
 
   kakao: {
-    backgroundColor: "#FEE500",
+    backgroundColor: '#FEE500',
     width: 300,
     height: 55,
     borderRadius: 46,
     margin: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -155,23 +153,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3.84,
     elevation: 5,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
 
   kakaoTxt: {
     fontSize: 18,
-    color: "#000000",
+    color: '#000000',
     opacity: 0.85,
-    textAlign: "center",
+    textAlign: 'center',
   },
 
   google: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     width: 300,
     height: 55,
     borderRadius: 46,
     margin: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -179,14 +177,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3.84,
     elevation: 5,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
 
   googleTxt: {
     fontSize: 18,
-    color: "#000000",
-    textAlign: "center",
-  }
+    color: '#000000',
+    textAlign: 'center',
+  },
 });
 
 export default SignInPage;

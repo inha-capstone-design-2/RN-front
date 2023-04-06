@@ -9,6 +9,7 @@ import ProgramListPage from './src/pages/ProgramListPage';
 import SettingPage from './src/pages/SettingPage';
 import SignInPage from './src/pages/SignInPage';
 import SignUpPage from './src/pages/SignUpPage';
+import AlarmSettingPage from './src/pages/AlarmSettingPage';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -62,6 +63,7 @@ function AppInner() {
         options={{headerShown: false}}
       />
       <Stack.Screen name="ChatPage" component={ChatPage} />
+      <Stack.Screen name="AlarmSetting" component={AlarmSettingPage} />
     </Stack.Navigator>
   ) : (
     <Stack.Navigator>
