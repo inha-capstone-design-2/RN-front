@@ -56,11 +56,11 @@ function AppInner() {
   const isLoggedIn = true;
 
   return isLoggedIn ? (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{gestureEnabled: true}}>
       <Stack.Screen
         name="Tabs"
         component={Tabs}
-        options={{headerShown: false}}
+        options={{headerShown: false, gestureEnabled: true}}
       />
       <Stack.Screen name="ChatPage" component={ChatPage} />
       <Stack.Screen name="AlarmSetting" component={AlarmSettingPage} />
@@ -70,7 +70,7 @@ function AppInner() {
       <Stack.Screen
         name="SignIn"
         component={SignInPage}
-        options={{title: '로그인'}}
+        options={{title: '로그인', gestureEnabled: true}}
       />
       <Stack.Screen
         name="SignUp"
