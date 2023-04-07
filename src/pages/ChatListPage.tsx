@@ -100,8 +100,8 @@ const ChatListPage = () => {
     );
   };
 
-  const toChatRoom = () => {
-    navigation.navigate('ChatPage');
+  const toChatRoom = (roomId: number) => {
+    navigation.navigate('ChatPage', {roomId: roomId});
   };
 
   return (
