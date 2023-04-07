@@ -6,17 +6,28 @@ import {
   TextInput,
   TouchableOpacity,
   Modal,
+  Image,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faSmile} from '@fortawesome/free-solid-svg-icons';
+import customImages from '../customImage';
 
-const Stack = createNativeStackNavigator();
+function ChatPage({route, navigation}) {
+  const {roomId} = route;
 
-function ChatPage() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [imoticonBar, setImoticonBar] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const chooseImage = (imageUri: string) => {
+    setModalVisible(false);
+    const newMessages = [...messages];
+    newMessages.push({imageUri: imageUri, sender: 'me', image: true});
+    setMessages(newMessages);
+  };
 
   const sendMessage = () => {
     if (message.trim() === '') {
@@ -24,17 +35,9 @@ function ChatPage() {
     }
 
     const newMessages = [...messages];
-    newMessages.push({text: message, sender: 'me'});
+    newMessages.push({text: message, sender: 'me', image: false});
     setMessages(newMessages);
     setMessage('');
-  };
-
-  const handleEmoticonPress = () => {
-    setImoticonBar(!imoticonBar);
-  };
-
-  const handleTogglePopover = () => {
-    setImoticonBar(!imoticonBar);
   };
 
   // 채팅자 수, 안에 이모티콘
@@ -42,24 +45,44 @@ function ChatPage() {
   return (
     <View style={styles.container}>
       <View style={styles.messagesContainer}>
-        {messages.map((m, i) => (
-          <View
-            key={i}
-            style={
-              m.sender === 'me'
-                ? styles.myMessageContainer
-                : styles.otherMessageContainer
-            }>
-            <Text
-              style={
-                m.sender === 'me'
-                  ? styles.myMessageText
-                  : styles.otherMessageText
-              }>
-              {m.text}
-            </Text>
-          </View>
-        ))}
+        {messages.map((m, i) => {
+          if (!m.image) {
+            return (
+              <View
+                key={i}
+                style={
+                  m.sender === 'me'
+                    ? styles.myMessageContainer
+                    : styles.otherMessageContainer
+                }>
+                <Text
+                  style={
+                    m.sender === 'me'
+                      ? styles.myMessageText
+                      : styles.otherMessageText
+                  }>
+                  {m.text}
+                </Text>
+              </View>
+            );
+          } else {
+            return (
+              <View
+                style={
+                  m.sender === 'me'
+                    ? styles.myImageContainer
+                    : styles.otherImageContainer
+                }>
+                <Image
+                  key={i}
+                  source={{uri: m.imageUri}}
+                  style={styles.imageSize}
+                  resizeMode="cover"
+                />
+              </View>
+            );
+          }
+        })}
       </View>
 
       {/* chat-bar */}
@@ -73,7 +96,7 @@ function ChatPage() {
             onSubmitEditing={sendMessage}
           />
           <TouchableOpacity
-            onPress={handleEmoticonPress}
+            onPress={() => setModalVisible(true)}
             style={styles.emoticonButton}>
             <FontAwesomeIcon icon={faSmile} style={styles.emoticonIcon} />
           </TouchableOpacity>
@@ -84,15 +107,33 @@ function ChatPage() {
         </TouchableOpacity>
       </View>
 
-      <Modal visible={imoticonBar} animationType="slide">
-        <View style={styles.popoverContainer}>
-          <TouchableOpacity
-            onPress={handleTogglePopover}
-            style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>Close</Text>
-          </TouchableOpacity>
-          <View style={styles.popoverContent}>
-            <Text style={styles.popoverText}>This is the popover content.</Text>
+      <Modal
+        animationType="slide"
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+        transparent={true}
+        presentationStyle="overFullScreen">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {/* <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity> */}
+            <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+              {customImages.map(image => (
+                <TouchableOpacity
+                  key={image.id}
+                  onPress={() => chooseImage(image.uri)}
+                  style={styles.imageItem}>
+                  <Image
+                    source={{uri: image.uri}}
+                    style={{flex: 1}}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -112,6 +153,19 @@ const styles = StyleSheet.create({
   messagesContainer: {
     flex: 1,
     marginBottom: 10,
+  },
+  myImageContainer: {
+    alignSelf: 'flex-end',
+    borderRadius: 10,
+    marginBottom: 5,
+  },
+  otherImageContainer: {
+    alignSelf: 'flex-start',
+    marginBottom: 5,
+  },
+  imageSize: {
+    width: 120,
+    height: 120,
   },
   myMessageContainer: {
     backgroundColor: '#4E5BF6',
@@ -171,7 +225,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: '50%',
+    height: '80%',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -201,6 +255,39 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+
+  // modal
+  chooseImageText: {
+    color: 'blue',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    borderRadius: 10,
+    overflow: 'hidden',
+    width: '90%',
+    maxHeight: '80%',
+  },
+  scrollViewContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-evenly',
+    padding: 10,
+  },
+  imageItem: {
+    width: '30%',
+    height: undefined,
+    aspectRatio: 1,
+    marginVertical: 10,
   },
 });
 
