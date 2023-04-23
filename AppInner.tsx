@@ -10,14 +10,32 @@ import SettingPage from './src/pages/SettingPage';
 import SignInPage from './src/pages/SignInPage';
 import SignUpPage from './src/pages/SignUpPage';
 import AlarmSettingPage from './src/pages/AlarmSettingPage';
+import ArticlesPage from './src/pages/ArticlesPage';
+import ArticlePage from './src/pages/ArticlePage';
+import {Image} from 'react-native-elements';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 export type LoggedInParamList = {
-  Orders: undefined;
-  Settings: undefined;
-  Delivery: undefined;
-  Complete: {orderId: string};
+  ProgramList: undefined;
+  Favorites: undefined;
+  ChatList: undefined;
+  Chat: {
+    roomId: number;
+    roomName: string;
+    onAir: boolean;
+  };
+  ProgramDetail: {
+    programId: number;
+  };
+  Articles: {
+    programId: number;
+  };
+  Article: {
+    articleId: number;
+  };
+  Setting: undefined;
+  AlarmSetting: undefined;
 };
 
 export type RootStackParamList = {
@@ -62,7 +80,26 @@ function AppInner() {
         component={Tabs}
         options={{headerShown: false, gestureEnabled: true}}
       />
-      <Stack.Screen name="ChatPage" component={ChatPage} />
+      <Stack.Screen
+        name="Chat"
+        component={ChatPage}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="ProgramDetail"
+        component={ProgramDetailPage}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Articles"
+        component={ArticlesPage}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Article"
+        component={ArticlePage}
+        options={{headerShown: false}}
+      />
       <Stack.Screen name="AlarmSetting" component={AlarmSettingPage} />
     </Stack.Navigator>
   ) : (
