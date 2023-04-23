@@ -45,7 +45,9 @@ const ChatListPage = () => {
     const {id, name, description, onAir, viewers} = item;
     return (
       <Swipeable renderRightActions={() => renderRightActions(item)}>
-        <TouchableOpacity style={styles.chatRoom} onPress={toChatRoom}>
+        <TouchableOpacity
+          style={styles.chatRoom}
+          onPress={() => toChatRoom(id, name, onAir)}>
           <View>
             <Text style={styles.chatRoomName}>{name}</Text>
             <Text style={styles.chatRoomDescription}>{description}</Text>
@@ -100,8 +102,8 @@ const ChatListPage = () => {
     );
   };
 
-  const toChatRoom = (roomId: number) => {
-    navigation.navigate('ChatPage', {roomId: roomId});
+  const toChatRoom = (roomId: number, roomName: string, onAir: boolean) => {
+    navigation.navigate('Chat', {roomId, roomName, onAir});
   };
 
   return (

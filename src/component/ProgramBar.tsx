@@ -1,37 +1,57 @@
+import {useNavigation} from '@react-navigation/native';
 import React, {useState} from 'react';
-import {View, Text, ScrollView, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
+
+type Program = {
+  programId: number;
+  time: string;
+  title: string;
+  favorite: boolean;
+};
 
 const ProgramBar = () => {
+  const navigation = useNavigation();
+
+  const toProgramDetail = (programId: number) => {
+    navigation.navigate('ProgramDetail', {programId});
+  };
+
   const programs = {
     SBS: [
-      {time: '00:00', title: 'Program A', favorite: false},
-      {time: '02:00', title: 'Program B', favorite: false},
-      {time: '04:00', title: 'Program C', favorite: false},
-      {time: '06:00', title: 'Program D', favorite: true},
+      {programId: 1, time: '00:00', title: 'Program A', favorite: false},
+      {programId: 2, time: '02:00', title: 'Program B', favorite: false},
+      {programId: 3, time: '04:00', title: 'Program C', favorite: false},
+      {programId: 4, time: '06:00', title: 'Program D', favorite: true},
     ],
     KBS: [
-      {time: '00:00', title: 'Program A', favorite: true},
-      {time: '01:00', title: 'Program B', favorite: false},
-      {time: '03:00', title: 'Program C', favorite: false},
-      {time: '05:00', title: 'Program D', favorite: false},
+      {programId: 11, time: '00:00', title: 'Program A', favorite: true},
+      {programId: 12, time: '01:00', title: 'Program B', favorite: false},
+      {programId: 13, time: '03:00', title: 'Program C', favorite: false},
+      {programId: 14, time: '05:00', title: 'Program D', favorite: false},
     ],
     SPOTV: [
-      {time: '00:00', title: 'Program A', favorite: false},
-      {time: '02:00', title: 'Program B', favorite: false},
-      {time: '04:00', title: 'Program C', favorite: false},
-      {time: '06:00', title: 'Program D', favorite: false},
+      {programId: 21, time: '00:00', title: 'Program A', favorite: false},
+      {programId: 22, time: '02:00', title: 'Program B', favorite: false},
+      {programId: 23, time: '04:00', title: 'Program C', favorite: false},
+      {programId: 24, time: '06:00', title: 'Program D', favorite: false},
     ],
     JTBC: [
-      {time: '00:00', title: 'Program A', favorite: true},
-      {time: '01:00', title: 'Program B', favorite: false},
-      {time: '03:00', title: 'Program C', favorite: true},
-      {time: '05:00', title: 'Program D', favorite: false},
+      {programId: 31, time: '00:00', title: 'Program A', favorite: true},
+      {programId: 32, time: '01:00', title: 'Program B', favorite: false},
+      {programId: 33, time: '03:00', title: 'Program C', favorite: true},
+      {programId: 34, time: '05:00', title: 'Program D', favorite: false},
     ],
     KBC: [
-      {time: '00:00', title: 'Program A', favorite: true},
-      {time: '02:00', title: 'Program B', favorite: false},
-      {time: '04:00', title: 'Program C', favorite: false},
-      {time: '06:00', title: 'Program D', favorite: false},
+      {programId: 41, time: '00:00', title: 'Program A', favorite: true},
+      {programId: 42, time: '02:00', title: 'Program B', favorite: false},
+      {programId: 43, time: '04:00', title: 'Program C', favorite: false},
+      {programId: 44, time: '06:00', title: 'Program D', favorite: false},
     ],
   };
 
@@ -41,8 +61,9 @@ const ProgramBar = () => {
         <View style={styles.broadcasterContainer}>
           <Text style={styles.broadcasterTitle}>{broadcaster}</Text>
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            {programs[broadcaster].map(program => (
-              <View
+            {programs[broadcaster].map((program: Program) => (
+              <TouchableOpacity
+                onPress={() => toProgramDetail(program.programId)}
                 style={
                   program.favorite
                     ? styles.favoriteProgramContainer
@@ -50,7 +71,7 @@ const ProgramBar = () => {
                 }>
                 <Text style={styles.programTime}>{program.time}</Text>
                 <Text style={styles.programTitle}>{program.title}</Text>
-              </View>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>

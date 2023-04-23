@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   StyleSheet,
   View,
@@ -9,24 +9,71 @@ import {
   Image,
   ScrollView,
   Dimensions,
+  Alert,
+  Keyboard,
+  SafeAreaView,
 } from 'react-native';
-import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
-import {faSmile} from '@fortawesome/free-solid-svg-icons';
+
 import customImages from '../customImage';
 
-function ChatPage({route, navigation}) {
-  const {roomId} = route;
+import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
+import {faSmile} from '@fortawesome/free-solid-svg-icons';
+import {LoggedInParamList} from '../../AppInner';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([]);
-  const [imoticonBar, setImoticonBar] = useState(false);
+type ChatPageProps = NativeStackScreenProps<LoggedInParamList, 'Chat'>;
+
+type Chat = {
+  userId: number;
+  me: boolean;
+  nickname: string;
+  text?: string;
+  image: boolean;
+  imageUri?: string;
+};
+
+function ChatPage({navigation, route}: ChatPageProps) {
+  const {roomId, roomName, onAir} = route.params;
+  const [message, setMessage] = useState<string>('');
+  const [messages, setMessages] = useState<Chat[]>([
+    {
+      userId: 1,
+      me: true,
+      nickname: '가자가자',
+      text: 'hi',
+      image: false,
+    },
+    {
+      userId: 2,
+      me: true,
+      nickname: '가자가자',
+      text: 'hi',
+      image: false,
+    },
+    {
+      userId: 3,
+      me: false,
+      nickname: '가자가자2',
+      text: 'hi',
+      image: false,
+    },
+  ]);
+
   const [modalVisible, setModalVisible] = useState(false);
 
   const chooseImage = (imageUri: string) => {
     setModalVisible(false);
-    const newMessages = [...messages];
-    newMessages.push({imageUri: imageUri, sender: 'me', image: true});
-    setMessages(newMessages);
+
+    setMessages([
+      ...messages,
+      {
+        userId: 1,
+        me: true,
+        nickname: '가자가자',
+        image: true,
+        imageUri: imageUri,
+      },
+    ]);
   };
 
   const sendMessage = () => {
@@ -34,56 +81,85 @@ function ChatPage({route, navigation}) {
       return;
     }
 
-    const newMessages = [...messages];
-    newMessages.push({text: message, sender: 'me', image: false});
-    setMessages(newMessages);
+    setMessages([
+      ...messages,
+      {
+        userId: 1,
+        me: true,
+        text: message,
+        nickname: '가자가자',
+        image: false,
+      },
+    ]);
     setMessage('');
+    Keyboard.dismiss();
   };
 
-  // 채팅자 수, 안에 이모티콘
-  // 채팅 방안에 이모티콘 눌럿을때 이모지 나옴
+  // 신고하기 로직
+  const timeoutRef = useRef<number | null>(null);
+
+  const reportPressIn = useCallback(
+    (userId: number, userNickname: string) => {
+      timeoutRef.current = setTimeout(() => {
+        Alert.alert('신고하기', `${userNickname}님을 신고하시겠습니까?`, [
+          {
+            text: '취소',
+            style: 'cancel',
+          },
+          {
+            text: '신고',
+            onPress: () => {},
+          },
+        ]);
+      }, 1000);
+    },
+    [timeoutRef],
+  );
+
+  const reportPressOut = useCallback(() => {
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current);
+    }
+  }, [timeoutRef]);
+
   return (
-    <View style={styles.container}>
-      <View style={styles.messagesContainer}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity
+          style={styles.headerBackButton}
+          onPress={() => navigation.goBack()}>
+          <Text>뒤로가기</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{roomName}</Text>
+      </View>
+
+      {/* chat */}
+      <ScrollView style={styles.messagesContainer}>
         {messages.map((m, i) => {
-          if (!m.image) {
-            return (
-              <View
-                key={i}
-                style={
-                  m.sender === 'me'
-                    ? styles.myMessageContainer
-                    : styles.otherMessageContainer
-                }>
-                <Text
-                  style={
-                    m.sender === 'me'
-                      ? styles.myMessageText
-                      : styles.otherMessageText
-                  }>
-                  {m.text}
-                </Text>
-              </View>
-            );
-          } else {
-            return (
-              <View
-                style={
-                  m.sender === 'me'
-                    ? styles.myImageContainer
-                    : styles.otherImageContainer
-                }>
+          return (
+            <View style={styles.messageContainer}>
+              <TouchableOpacity
+                onPressIn={() => reportPressIn(m.userId, m.nickname)}
+                onPressOut={reportPressOut}>
+                <Text style={styles.userNickname}>{m.nickname}: </Text>
+              </TouchableOpacity>
+
+              {m.image ? (
                 <Image
                   key={i}
                   source={{uri: m.imageUri}}
                   style={styles.imageSize}
                   resizeMode="cover"
                 />
-              </View>
-            );
-          }
+              ) : (
+                <Text key={i} style={styles.message}>
+                  {m.text}
+                </Text>
+              )}
+            </View>
+          );
         })}
-      </View>
+      </ScrollView>
 
       {/* chat-bar */}
       <View style={styles.inputContainer}>
@@ -115,11 +191,6 @@ function ChatPage({route, navigation}) {
         presentationStyle="overFullScreen">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            {/* <TouchableOpacity
-              onPress={() => setModalVisible(false)}
-              style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>Close</Text>
-            </TouchableOpacity> */}
             <ScrollView contentContainerStyle={styles.scrollViewContainer}>
               {customImages.map(image => (
                 <TouchableOpacity
@@ -137,9 +208,16 @@ function ChatPage({route, navigation}) {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
+
+const getRandomColor = () => {
+  const red = Math.floor(Math.random() * 256);
+  const green = Math.floor(Math.random() * 256);
+  const blue = Math.floor(Math.random() * 256);
+  return `rgb(${red}, ${green}, ${blue})`;
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -147,46 +225,52 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 10,
   },
-  bottom: {
-    flex: 1,
+
+  // 헤더
+  headerContainer: {
+    backgroundColor: '#eee',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 5,
+    marginBottom: 10,
   },
+  headerBackButton: {
+    marginRight: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+
+  // 채팅
   messagesContainer: {
     flex: 1,
     marginBottom: 10,
   },
-  myImageContainer: {
-    alignSelf: 'flex-end',
-    borderRadius: 10,
-    marginBottom: 5,
-  },
-  otherImageContainer: {
+  messageContainer: {
+    flexDirection: 'row',
     alignSelf: 'flex-start',
-    marginBottom: 5,
+    marginBottom: 10,
+  },
+  userNickname: {
+    color: getRandomColor(),
+  },
+  message: {
+    color: 'black',
   },
   imageSize: {
     width: 120,
     height: 120,
   },
-  myMessageContainer: {
-    backgroundColor: '#4E5BF6',
-    alignSelf: 'flex-end',
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 5,
+
+  // 채팅 입력란
+  bottom: {
+    flex: 1,
   },
-  otherMessageContainer: {
-    backgroundColor: '#F1F1F1',
-    alignSelf: 'flex-start',
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 5,
-  },
-  myMessageText: {
-    color: 'white',
-  },
-  otherMessageText: {
-    color: 'black',
-  },
+
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
