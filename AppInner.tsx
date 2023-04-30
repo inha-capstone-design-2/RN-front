@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, {useEffect, useState} from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import ChatListPage from './src/pages/ChatListPage';
@@ -12,7 +12,9 @@ import SignUpPage from './src/pages/SignUpPage';
 import AlarmSettingPage from './src/pages/AlarmSettingPage';
 import ArticlesPage from './src/pages/ArticlesPage';
 import ArticlePage from './src/pages/ArticlePage';
-import {Image} from 'react-native-elements';
+import userSlice from './src/slices/user';
+import {useSelector} from 'react-redux';
+import {RootState} from './src/store/reducer';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -71,7 +73,7 @@ function Tabs() {
 }
 
 function AppInner() {
-  const isLoggedIn = true;
+  const isLoggedIn = useSelector((state: RootState) => !!state.user.email);
 
   return isLoggedIn ? (
     <Stack.Navigator screenOptions={{gestureEnabled: true}}>
