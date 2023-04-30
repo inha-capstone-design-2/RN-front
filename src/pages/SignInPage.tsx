@@ -24,6 +24,7 @@ function SignInPage() {
     Alert.alert('알림', '로그인 성공');
     dispatch(
       userSlice.actions.setUser({
+        userId: 2,
         email: email,
         password: password,
       }),

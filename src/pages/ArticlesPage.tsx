@@ -5,6 +5,7 @@ import {Text} from 'react-native-elements';
 import {LoggedInParamList} from '../../AppInner';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {TouchableOpacity} from 'react-native';
+import axios from 'axios';
 
 type ArticlesPageProps = NativeStackScreenProps<LoggedInParamList, 'Articles'>;
 
@@ -17,6 +18,7 @@ type Article = {
 };
 
 const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
+  const {programId} = route.params;
   const [articles, setArticles] = useState<Article[]>([
     {
       id: 1,
@@ -80,6 +82,16 @@ const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
     navigation.navigate('Article', {articleId});
   };
 
+  const writeArticle = (programId: number) => {
+    navigation.navigate('WriteArticle', {programId});
+  };
+
+  useEffect(async () => {
+    await axios.get(`/api/bbs/article/${programId}`).then(response => {
+      setArticles(response.data);
+    });
+  });
+
   const renderArticles = () => {
     return articles.map(item => (
       <TouchableOpacity
@@ -102,6 +114,9 @@ const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
         style={styles.articleList}>
         {renderArticles()}
       </ScrollView>
+      <TouchableOpacity onPress={() => writeArticle(1)}>
+        <Text>게시글 작성</Text>
+      </TouchableOpacity>
     </View>
   );
 };

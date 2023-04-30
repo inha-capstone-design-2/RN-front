@@ -15,6 +15,8 @@ import base64 from 'react-native-base64';
 import {useAppDispatch} from '../store';
 import userSlice from '../slices/user';
 import {RootStackParamList} from '../../AppInner';
+import axios from 'axios';
+import SERVER_URL from '../api';
 
 type ArticlesPageProps = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
@@ -84,13 +86,6 @@ const SignUpPage = ({navigation}: ArticlesPageProps) => {
 
     navigation.navigate('SignIn');
     Alert.alert('알림', '회원가입 성공');
-    // dispatch(
-    //   userSlice.actions.setUser({
-    //     email: email,
-    //     password: password,
-    //     nickname: nickname,
-    //   }),
-    // );
   }, [email, nickname, password]);
 
   return (

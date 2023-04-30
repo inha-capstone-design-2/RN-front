@@ -15,6 +15,7 @@ import ArticlePage from './src/pages/ArticlePage';
 import userSlice from './src/slices/user';
 import {useSelector} from 'react-redux';
 import {RootState} from './src/store/reducer';
+import WriteArticlePage from './src/pages/WriteArticlePage';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -35,6 +36,9 @@ export type LoggedInParamList = {
   };
   Article: {
     articleId: number;
+  };
+  WriteArticle: {
+    programId: number;
   };
   Setting: undefined;
   AlarmSetting: undefined;
@@ -100,6 +104,11 @@ function AppInner() {
       <Stack.Screen
         name="Article"
         component={ArticlePage}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="WriteArticle"
+        component={WriteArticlePage}
         options={{headerShown: false}}
       />
       <Stack.Screen name="AlarmSetting" component={AlarmSettingPage} />
