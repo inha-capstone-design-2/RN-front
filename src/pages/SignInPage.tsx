@@ -5,19 +5,29 @@ import {
   View,
   TouchableOpacity,
   TextInput,
+  Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {useAppDispatch} from '../store';
+import userSlice from '../slices/user';
 
 const Stack = createNativeStackNavigator();
 
 function SignInPage() {
+  const dispatch = useAppDispatch();
   const navigation = useNavigation();
   const [email, setEmail] = useState(''); //string
   const [password, setPassword] = useState(''); //string
 
   const onPressLogin = () => {
-    navigation.navigate('ProgramList');
+    Alert.alert('알림', '로그인 성공');
+    dispatch(
+      userSlice.actions.setUser({
+        email: email,
+        password: password,
+      }),
+    );
   };
 
   const onPressJoin = () => {

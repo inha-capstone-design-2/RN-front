@@ -17,7 +17,7 @@ type Article = {
 };
 
 const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
-  const [articles, setArticles] = useState([
+  const [articles, setArticles] = useState<Article[]>([
     {
       id: 1,
       title: '게시글 제목',
