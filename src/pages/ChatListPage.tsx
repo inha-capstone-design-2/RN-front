@@ -1,4 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useState} from 'react';
 import {
   View,
@@ -11,24 +12,25 @@ import {
 } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {LoggedInParamList} from '../../AppInner';
 
 const data = [
   {
-    id: '1',
+    id: 1,
     name: 'SBS - 도깨비',
     description: '16화 - 회차 이름',
     onAir: true,
     viewers: 12,
   },
   {
-    id: '2',
+    id: 2,
     name: 'KBS - 모범 택시',
     description: '14화 - 회차 이름',
     onAir: true,
     viewers: 43,
   },
   {
-    id: '3',
+    id: 3,
     name: 'SPOTV',
     description: '맨유 VS 아스날',
     onAir: false,
@@ -36,12 +38,25 @@ const data = [
   },
 ];
 
-const ChatListPage = () => {
-  const navigation = useNavigation();
-  const [chatRooms, setChatRooms] = useState(data);
+type ChatListProps = NativeStackScreenProps<LoggedInParamList, 'ChatList'>;
+
+type ChatList = {
+  id: number;
+  name: string;
+  description: string;
+  onAir: boolean;
+  viewers: number;
+};
+
+type IChatList = {
+  item: ChatList;
+};
+
+const ChatListPage = ({navigation}: ChatListProps) => {
+  const [chatRooms, setChatRooms] = useState<ChatList[]>(data);
   const [isRefreshing, setIsRefreshing] = useState(true);
 
-  const renderItem = ({item}) => {
+  const renderItem = ({item}: IChatList) => {
     const {id, name, description, onAir, viewers} = item;
     return (
       <Swipeable renderRightActions={() => renderRightActions(item)}>
@@ -85,7 +100,7 @@ const ChatListPage = () => {
     setIsRefreshing(true);
   };
 
-  const renderRightActions = item => {
+  const renderRightActions = (item: ChatList) => {
     const handleDelete = () => {
       const updatedChatRooms = chatRooms.filter(
         chatRoom => chatRoom.id !== item.id,
@@ -110,7 +125,7 @@ const ChatListPage = () => {
     <View style={styles.container}>
       <FlatList
         data={chatRooms}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.name}
         renderItem={renderItem}
         contentContainerStyle={styles.flatListContent}
         showsVerticalScrollIndicator={false}

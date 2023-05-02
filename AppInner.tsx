@@ -16,6 +16,8 @@ import userSlice from './src/slices/user';
 import {useSelector} from 'react-redux';
 import {RootState} from './src/store/reducer';
 import WriteArticlePage from './src/pages/WriteArticlePage';
+import EncryptedStorage from 'react-native-encrypted-storage';
+import axios, {AxiosError} from 'axios';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -77,7 +79,57 @@ function Tabs() {
 }
 
 function AppInner() {
-  const isLoggedIn = useSelector((state: RootState) => !!state.user.email);
+  const isLoggedIn = useSelector(
+    (state: RootState) => !!state.user.accessToken,
+  );
+
+  useEffect(() => {
+    axios.interceptors.response.use(
+      response => {
+        return response;
+      },
+      async error => {
+        const {
+          config,
+          response: {status},
+        } = error;
+        if (status === 419) {
+          if (error.response.data.code === 'expired') {
+            const originalRequest = config;
+            const refreshToken = await EncryptedStorage.getItem('refreshToken');
+            const accessToken = await EncryptedStorage.getItem('accessToken');
+
+            await axios
+              .post(
+                `http://3.36.97.254:8080/api/auth/reissue`, // token refresh api
+                {
+                  accessToken,
+                  refreshToken,
+                },
+                {headers: {authorization: `Bearer ${refreshToken}`}},
+              )
+              .then(response => {
+                const {accessToken, refreshToken} = response.data.data;
+
+                dispatch(
+                  userSlice.actions.setUser({
+                    accessToken,
+                    refreshToken,
+                  }),
+                );
+
+                EncryptedStorage.setItem('refreshToken', refreshToken);
+                EncryptedStorage.setItem('accessToken', refreshToken);
+
+                originalRequest.headers.authorization = `Bearer ${accessToken}`;
+                return axios(originalRequest);
+              });
+          }
+        }
+        return Promise.reject(error);
+      },
+    );
+  }, [dispatch]);
 
   return isLoggedIn ? (
     <Stack.Navigator screenOptions={{gestureEnabled: true}}>
@@ -130,3 +182,6 @@ function AppInner() {
 }
 
 export default AppInner;
+function dispatch(arg0: {payload: any; type: 'user/setUser'}) {
+  throw new Error('Function not implemented.');
+}

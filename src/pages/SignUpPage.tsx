@@ -18,11 +18,11 @@ import {RootStackParamList} from '../../AppInner';
 import axios from 'axios';
 import SERVER_URL from '../api';
 
-type ArticlesPageProps = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
+type SignUpPageProps = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
 const Stack = createNativeStackNavigator();
 
-const SignUpPage = ({navigation}: ArticlesPageProps) => {
+const SignUpPage = ({navigation}: SignUpPageProps) => {
   const dispatch = useAppDispatch();
   const [email, setEmail] = useState(''); //string
   const [password, setPassword] = useState(''); //string
@@ -75,7 +75,7 @@ const SignUpPage = ({navigation}: ArticlesPageProps) => {
     }
   }, [nickname]);
 
-  const onPressJoin = useCallback(() => {
+  const onPressJoin = useCallback(async () => {
     checkEmail();
     checkPassword();
     checkNickname();
@@ -83,6 +83,24 @@ const SignUpPage = ({navigation}: ArticlesPageProps) => {
     if (eamilValid && pwdValid && nameValid) {
       setPassword(current => base64.encode(current));
     }
+
+    const encoding = base64.encode(`${email}:${password}`);
+
+    await axios
+      .post(
+        'http://3.36.97.254:8080/api/auth/signup',
+        {
+          email: email,
+          nickname: nickname,
+          password: password,
+        },
+        {
+          headers: {Authorization: `Basic ${encoding}`},
+        },
+      )
+      .then(response => {
+        console.log(response.data);
+      });
 
     navigation.navigate('SignIn');
     Alert.alert('알림', '회원가입 성공');

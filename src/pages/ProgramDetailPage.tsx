@@ -6,8 +6,6 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faStar} from '@fortawesome/free-solid-svg-icons';
 
-const Stack = createNativeStackNavigator();
-
 type ProgramDetailPageProps = NativeStackScreenProps<
   LoggedInParamList,
   'ProgramDetail'
