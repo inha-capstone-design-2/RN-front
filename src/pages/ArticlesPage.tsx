@@ -1,11 +1,14 @@
 import React, {useState, useEffect} from 'react';
-import {View, StyleSheet, FlatList, ScrollView} from 'react-native';
+import {View, StyleSheet, FlatList, ScrollView, Alert} from 'react-native';
 import {Text} from 'react-native-elements';
 
 import {LoggedInParamList} from '../../AppInner';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {TouchableOpacity} from 'react-native';
-import axios from 'axios';
+import axios, {AxiosError} from 'axios';
+import {customAxios} from '../utils/customAxios';
+import {useSelector} from 'react-redux';
+import {RootState} from '../store/reducer';
 
 type ArticlesPageProps = NativeStackScreenProps<LoggedInParamList, 'Articles'>;
 
@@ -18,6 +21,7 @@ type Article = {
 };
 
 const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
+  const accessToken = useSelector((state: RootState) => state.user.accessToken);
   const {programId} = route.params;
   const [articles, setArticles] = useState<Article[]>([
     {
@@ -86,11 +90,25 @@ const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
     navigation.navigate('WriteArticle', {programId});
   };
 
-  useEffect(async () => {
-    await axios.get(`/api/bbs/article/${programId}`).then(response => {
-      setArticles(response.data);
-    });
-  });
+  useEffect(() => {
+    const getArticles = async () => {
+      try {
+        await customAxios
+          .get(`/api/bbs/article`, {
+            headers: {Authorization: `Bearer ${accessToken}`},
+          })
+          .then(response => {
+            Alert.alert('게시글 작성완료!');
+            navigation.goBack();
+          });
+      } catch (error) {
+        const errorResponse = (error as AxiosError).response as any;
+        console.log(errorResponse?.data.error.code);
+        Alert.alert('알림', `${errorResponse?.data.error.code}`);
+      }
+    };
+    getArticles();
+  }, [programId]);
 
   const renderArticles = () => {
     return articles.map(item => (

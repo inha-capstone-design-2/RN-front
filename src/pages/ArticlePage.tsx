@@ -6,7 +6,9 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
 type ArticlePageProps = NativeStackScreenProps<LoggedInParamList, 'Article'>;
 
-const ArticlePage = () => {
+const ArticlePage = ({navigation, route}: ArticlePageProps) => {
+  const {articleId} = route.params;
+
   const [articleData, setArticleData] = useState({
     title: '너무 재미있지 않나요?',
     author: 'asdfas123',

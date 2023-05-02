@@ -7,28 +7,63 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import EncryptedStorage from 'react-native-encrypted-storage';
 import {useAppDispatch} from '../store';
 import userSlice from '../slices/user';
+import base64 from 'react-native-base64';
+import axios, {AxiosError} from 'axios';
+import {customAxios} from '../utils/customAxios';
+import {RootStackParamList} from '../../AppInner';
 
-const Stack = createNativeStackNavigator();
+type SignInPageProps = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
 
-function SignInPage() {
+function SignInPage({navigation}: SignInPageProps) {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation();
+
   const [email, setEmail] = useState(''); //string
   const [password, setPassword] = useState(''); //string
 
-  const onPressLogin = () => {
-    Alert.alert('알림', '로그인 성공');
-    dispatch(
-      userSlice.actions.setUser({
-        userId: 2,
-        email: email,
-        password: password,
-      }),
-    );
+  const onPressLogin = async () => {
+    try {
+      const encoding = base64.encode(`${email}:${password}`);
+
+      await customAxios
+        .post(
+          `/api/auth/login`,
+          {},
+          {
+            headers: {Authorization: `Basic ${encoding}`},
+          },
+        )
+        .then(response => {
+          const {accessToken, refreshToken} = response.data.data;
+          console.log(response.data.data);
+
+          dispatch(
+            userSlice.actions.setUser({
+              accessToken: accessToken,
+              refreshToken: refreshToken,
+            }),
+          );
+
+          EncryptedStorage.setItem(
+            'refreshToken',
+            response.data.data.refreshToken,
+          );
+
+          EncryptedStorage.setItem(
+            'accessToken',
+            response.data.data.accessToken,
+          );
+        });
+
+      Alert.alert('알림', '로그인 성공');
+    } catch (error) {
+      const errorResponse = (error as AxiosError).response as any;
+      console.log(errorResponse?.data.error.code);
+      Alert.alert('알림', `${errorResponse?.data.error.code}`);
+    }
   };
 
   const onPressJoin = () => {
