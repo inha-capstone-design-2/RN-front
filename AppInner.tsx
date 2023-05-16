@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import ChatListPage from './src/pages/ChatListPage';
@@ -18,6 +18,7 @@ import {RootState} from './src/store/reducer';
 import WriteArticlePage from './src/pages/WriteArticlePage';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import axios, {AxiosError} from 'axios';
+import socket from './src/utils/useSocket';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -82,6 +83,12 @@ function AppInner() {
   const isLoggedIn = useSelector(
     (state: RootState) => !!state.user.accessToken,
   );
+
+  useEffect(() => {
+    socket.on('connect', () => {
+      console.log('socket connected');
+    });
+  }, []);
 
   useEffect(() => {
     axios.interceptors.response.use(
