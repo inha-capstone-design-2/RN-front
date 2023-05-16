@@ -13,6 +13,7 @@ import {
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {LoggedInParamList} from '../../AppInner';
+import socket from '../utils/useSocket';
 
 const data = [
   {
@@ -59,7 +60,9 @@ const ChatListPage = ({navigation}: ChatListProps) => {
   const renderItem = ({item}: IChatList) => {
     const {id, name, description, onAir, viewers} = item;
     return (
-      <Swipeable renderRightActions={() => renderRightActions(item)}>
+      <Swipeable
+        key={item.id}
+        renderRightActions={() => renderRightActions(item)}>
         <TouchableOpacity
           style={styles.chatRoom}
           onPress={() => toChatRoom(id, name, onAir)}>
@@ -118,6 +121,7 @@ const ChatListPage = ({navigation}: ChatListProps) => {
   };
 
   const toChatRoom = (roomId: number, roomName: string, onAir: boolean) => {
+    socket.emit('joinRoom', roomId, 1);
     navigation.navigate('Chat', {roomId, roomName, onAir});
   };
 

@@ -12,6 +12,8 @@ import {
   Alert,
   Keyboard,
   SafeAreaView,
+  KeyboardAvoidingView,
+  Button,
 } from 'react-native';
 
 import customImages from '../customImage';
@@ -20,79 +22,143 @@ import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faSmile} from '@fortawesome/free-solid-svg-icons';
 import {LoggedInParamList} from '../../AppInner';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import socket from '../utils/useSocket';
+import axios from 'axios';
+import {RootState} from '../store/reducer';
+import {useSelector} from 'react-redux';
 
 type ChatPageProps = NativeStackScreenProps<LoggedInParamList, 'Chat'>;
 
 type Chat = {
-  userId: number;
-  me: boolean;
   nickname: string;
-  text?: string;
+  userId: number;
+  roomId: number;
+  text: string | null;
   image: boolean;
-  imageUri?: string;
+  imageUri: string | null;
+  // timeline: Date;
+};
+
+type SocketChat = {
+  text: string;
+  userId: number;
 };
 
 function ChatPage({navigation, route}: ChatPageProps) {
+  const myId = useSelector((state: RootState) => state.user.userId);
+
   const {roomId, roomName, onAir} = route.params;
   const [message, setMessage] = useState<string>('');
-  const [messages, setMessages] = useState<Chat[]>([
-    {
-      userId: 1,
-      me: true,
-      nickname: '가자가자',
-      text: 'hi',
-      image: false,
-    },
-    {
-      userId: 2,
-      me: true,
-      nickname: '가자가자',
-      text: 'hi',
-      image: false,
-    },
-    {
-      userId: 3,
-      me: false,
-      nickname: '가자가자2',
-      text: 'hi',
-      image: false,
-    },
-  ]);
-
+  const [messages, setMessages] = useState<Chat[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const chooseImage = (imageUri: string) => {
-    setModalVisible(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
-    setMessages([
-      ...messages,
-      {
-        userId: 1,
-        me: true,
-        nickname: '가자가자',
-        image: true,
-        imageUri: imageUri,
-      },
-    ]);
+  // 초기 메세지 load
+  useEffect(() => {
+    try {
+      const getMessages = async () => {
+        await axios.get('http://10.0.2.2:4000/v1/chat/1').then(response => {
+          const chats = response.data.data;
+          setMessages(chats);
+          scrollToBottom();
+        });
+      };
+
+      getMessages();
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+  const onMessage = useCallback(
+    (chat: Chat) => {
+      if (chat.userId !== myId) {
+        setMessages([
+          ...messages,
+          {
+            nickname: chat.nickname,
+            userId: chat.userId,
+            roomId: chat.roomId,
+            text: chat.text,
+            image: chat.image,
+            imageUri: chat.imageUri,
+          },
+        ]);
+      }
+    },
+    [socket],
+  );
+
+  useEffect(() => {
+    socket?.on('message', onMessage);
+  }, [socket, onMessage]);
+
+  const sendMessage = async () => {
+    try {
+      if (message.trim() === '') {
+        return;
+      }
+
+      await axios
+        .post('http://10.0.2.2:4000/v1/chat/', {
+          nickname: 'test',
+          userId: 1,
+          roomId: 1,
+          text: message,
+          image: false,
+          imageUri: null,
+        })
+        .then(response => {
+          setMessages([
+            ...messages,
+            {
+              nickname: 'test',
+              userId: 1,
+              roomId: 1,
+              text: message,
+              image: false,
+              imageUri: null,
+            },
+          ]);
+
+          setMessage('');
+          scrollToBottom();
+        });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const sendMessage = () => {
-    if (message.trim() === '') {
-      return;
-    }
+  const sendImage = async (imageUri: string) => {
+    try {
+      await axios
+        .post('http://10.0.2.2:4000/v1/chat/', {
+          nickname: '가자가자',
+          userId: 1,
+          roomId: 1,
+          text: null,
+          image: true,
+          imageUri: imageUri,
+        })
+        .then(response => {
+          setMessages([
+            ...messages,
+            {
+              nickname: '가자가자',
+              userId: 1,
+              roomId: 1,
+              text: null,
+              image: true,
+              imageUri: imageUri,
+            },
+          ]);
 
-    setMessages([
-      ...messages,
-      {
-        userId: 1,
-        me: true,
-        text: message,
-        nickname: '가자가자',
-        image: false,
-      },
-    ]);
-    setMessage('');
-    Keyboard.dismiss();
+          setModalVisible(false);
+        });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   // 신고하기 로직
@@ -122,19 +188,29 @@ function ChatPage({navigation, route}: ChatPageProps) {
     }
   }, [timeoutRef]);
 
+  const goBack = useCallback(() => {
+    socket.emit('leaveRoom', 1, 1);
+    navigation.goBack();
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    scrollViewRef.current?.scrollToEnd({animated: false});
+  }, [scrollViewRef]);
+
   return (
-    <SafeAreaView style={styles.container}>
+    <KeyboardAvoidingView style={styles.container}>
       <View style={styles.headerContainer}>
-        <TouchableOpacity
-          style={styles.headerBackButton}
-          onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.headerBackButton} onPress={goBack}>
           <Text>뒤로가기</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{roomName}</Text>
       </View>
 
       {/* chat */}
-      <ScrollView style={styles.messagesContainer}>
+      <ScrollView
+        style={styles.messagesContainer}
+        ref={scrollViewRef}
+        showsVerticalScrollIndicator={false}>
         {messages.map((m, i) => {
           return (
             <View style={styles.messageContainer}>
@@ -147,7 +223,7 @@ function ChatPage({navigation, route}: ChatPageProps) {
               {m.image ? (
                 <Image
                   key={i}
-                  source={{uri: m.imageUri}}
+                  source={{uri: m.imageUri!}}
                   style={styles.imageSize}
                   resizeMode="cover"
                 />
@@ -195,7 +271,7 @@ function ChatPage({navigation, route}: ChatPageProps) {
               {customImages.map(image => (
                 <TouchableOpacity
                   key={image.id}
-                  onPress={() => chooseImage(image.uri)}
+                  onPress={() => sendImage(image.uri)}
                   style={styles.imageItem}>
                   <Image
                     source={{uri: image.uri}}
@@ -208,7 +284,7 @@ function ChatPage({navigation, route}: ChatPageProps) {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 

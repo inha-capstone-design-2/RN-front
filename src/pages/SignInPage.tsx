@@ -38,7 +38,6 @@ function SignInPage({navigation}: SignInPageProps) {
         )
         .then(response => {
           const {accessToken, refreshToken} = response.data.data;
-          console.log(response.data.data);
 
           dispatch(
             userSlice.actions.setUser({
