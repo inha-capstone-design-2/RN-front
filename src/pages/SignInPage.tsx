@@ -12,10 +12,10 @@ import EncryptedStorage from 'react-native-encrypted-storage';
 import {useAppDispatch} from '../store';
 import userSlice from '../slices/user';
 import base64 from 'react-native-base64';
-import axios, {AxiosError} from 'axios';
+import {AxiosError} from 'axios';
 import {customAxios} from '../utils/customAxios';
 import {RootStackParamList} from '../../AppInner';
-
+import jwt_decode from 'jwt-decode';
 type SignInPageProps = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
 
 function SignInPage({navigation}: SignInPageProps) {
@@ -33,14 +33,21 @@ function SignInPage({navigation}: SignInPageProps) {
           `/api/auth/login`,
           {},
           {
-            headers: {Authorization: `Basic ${encoding}`},
+            headers: {Authorization: `basic ${encoding}`},
           },
         )
         .then(response => {
           const {accessToken, refreshToken} = response.data.data;
 
+          var decoded = jwt_decode(accessToken) as any;
+
+          if (!decoded.sub) {
+            console.log('invalid user');
+          }
+
           dispatch(
             userSlice.actions.setUser({
+              userId: parseInt(decoded.sub),
               accessToken: accessToken,
               refreshToken: refreshToken,
             }),
