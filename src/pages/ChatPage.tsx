@@ -8,12 +8,8 @@ import {
   Modal,
   Image,
   ScrollView,
-  Dimensions,
   Alert,
-  Keyboard,
-  SafeAreaView,
   KeyboardAvoidingView,
-  Button,
 } from 'react-native';
 
 import customImages from '../customImage';
