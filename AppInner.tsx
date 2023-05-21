@@ -19,6 +19,8 @@ import WriteArticlePage from './src/pages/WriteArticlePage';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import axios, {AxiosError} from 'axios';
 import socket from './src/utils/useSocket';
+import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
+import {faList, faStar, faComments, faGear} from '@fortawesome/free-solid-svg-icons';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -58,22 +60,58 @@ function Tabs() {
       <Tab.Screen
         name="ProgramList"
         component={ProgramListPage}
-        options={{headerShown: false}}
+        options={
+          {headerShown: false,
+            tabBarIcon: () => (
+              <FontAwesomeIcon
+              icon={faList}
+              size={26}
+              />
+            )
+          }
+        }
       />
       <Tab.Screen
         name="Favorites"
         component={FavoritesPage}
-        options={{headerShown: false}}
+        options={
+          {headerShown: false,
+            tabBarIcon: () => (
+              <FontAwesomeIcon
+              icon={faStar}
+              size={26}
+              />
+            )
+          }
+        }
       />
       <Tab.Screen
         name="ChatList"
         component={ChatListPage}
-        options={{headerShown: false}}
+        options={
+          {headerShown: false,
+            tabBarIcon: () => (
+              <FontAwesomeIcon
+              icon={faComments}
+              size={26}
+              />
+            )
+          }
+        }
       />
       <Tab.Screen
         name="Setting"
         component={SettingPage}
-        options={{headerShown: false}}
+        options={
+          {headerShown: false,
+            tabBarIcon: () => (
+              <FontAwesomeIcon
+              icon={faGear}
+              size={26}
+              />
+            )
+          }
+        }
       />
     </Tab.Navigator>
   );
