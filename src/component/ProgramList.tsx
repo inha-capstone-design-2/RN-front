@@ -8,6 +8,7 @@ import {
   StatusBar, 
   TouchableOpacity,
   Alert,
+  Image,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import axios, {AxiosError} from 'axios';
@@ -15,12 +16,15 @@ import {customAxios} from '../utils/customAxios';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faStar} from '@fortawesome/free-solid-svg-icons';
-
+import {useNavigation} from '@react-navigation/native';
 
 let channelList = [];
 let programList = [];
+let bookmarkList = [];
+let accessToken;
 
 const ProgramList = () => {
+  const navigation = useNavigation();
   const [currentChannel, setChannel] = useState(0);
   const [searchTarget, setSearchTarget] = useState('channel');
   const [searchText, setSearchText] = useState("");
@@ -29,37 +33,17 @@ const ProgramList = () => {
   const [noResult, setNoResult] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(true);
 
+  const initList = async () => {
+    accessToken = await EncryptedStorage.getItem('accessToken');
+    const cl = await EncryptedStorage.getItem('channelList');
+    channelList = JSON.parse(cl);
+    setFilteredChannel(channelList);
+    setChannel(filteredChannel[0].channelId);
+    programSet(filteredChannel[0]);
+    bookmarkSet();
+  }
+
   useEffect(() => {
-    const initList = async () => {
-      const accessToken = await EncryptedStorage.getItem('accessToken');
-      const cl = await EncryptedStorage.getItem('channelList');
-      channelList = JSON.parse(cl);
-      const pl = await EncryptedStorage.getItem('programList');
-      programList = JSON.parse(pl);
-      setFilteredChannel(channelList);
-      setFilteredProgram(programList);
-      setChannel(filteredChannel[0].channelId);
-      // try {
-      //   await customAxios
-      //     .get(
-      //       `/api/program/{channel-id}?channel-id=1`,
-      //       {
-      //         headers: {Authorization: `Bearer ${accessToken}`},
-              
-      //       },
-      //     )
-      //     .then(response => {
-      //       const pl = response.data.data
-      //       setFilteredProgram(JSON.parse(pl));
-      //       console.log("program init done");
-      //       console.log(response.data.data);
-      //     });
-      // } catch (error) {
-      //   const errorResponse = (error as AxiosError).response as any;
-      //   console.log(errorResponse?.data.error.code);
-      //   Alert.alert('알림', `${errorResponse?.data.error.code}`);
-      // }
-    }
     initList();
   },[]);
 
@@ -67,14 +51,60 @@ const ProgramList = () => {
     setIsBookmarked(!isBookmarked);
   };
 
+  const toProgramDetail = (programId: number) => {
+    navigation.navigate('ProgramDetail', {programId});
+  };
+
+  const programSet = async (item) => {
+    setChannel(item.channelId);
+    try {
+      await customAxios
+        .get(
+          `/api/program/{channel-id}?channel-id=${item.channelId}`,
+          {
+            headers: {Authorization: `Bearer ${accessToken}`},
+          },
+        )
+        .then(response => {
+          const pl = JSON.stringify(response.data.data);
+          setFilteredProgram(JSON.parse(pl));
+        });
+    } catch (error) {
+      const errorResponse = (error as AxiosError).response as any;
+      console.log(errorResponse?.data.error.code);
+      Alert.alert('알림', `${errorResponse?.data.error.code}`);
+    }
+  };
+
+  const bookmarkSet = async () => {
+    try {
+      await customAxios
+        .get(
+          `/api/bookmark/`,
+          {
+            headers: {Authorization: `Bearer ${accessToken}`},
+          },
+        )
+        .then(response => {
+          const bl = JSON.stringify(response.data.data);
+          bookmarkList=JSON.parse(bl);
+          console.log(bookmarkList);
+        });
+    } catch (error) {
+      const errorResponse = (error as AxiosError).response as any;
+      console.log(errorResponse?.data.error.code);
+      Alert.alert('알림', `${errorResponse?.data.error.code}`);
+    }
+  }
+
   const Channel = ({ item, onPress, backgroundColor, textColor}) => (
     <TouchableOpacity onPress={onPress} style={[styles.channelList, {backgroundColor}]}>
       <Text style={[styles.channelName, {color: textColor}]}>{item.channelName}</Text>
     </TouchableOpacity>
   );
 
-  const Program = ({title}) => (
-    <TouchableOpacity style={styles.programList}>
+  const Program = ({title, onPress}) => (
+    <TouchableOpacity style={styles.programList} onPress={onPress}>
       <Text style={styles.programTitle}>{title}</Text>
       <TouchableOpacity style={styles.bookmark} onPress={handleBookmarkPress}>
           <FontAwesomeIcon
@@ -92,33 +122,7 @@ const ProgramList = () => {
     return (
       <Channel 
         item={item}
-        onPress={async () => {
-          setChannel(item.channelId);
-          const accessToken = await EncryptedStorage.getItem('accessToken');
-          /******************************************
-            에러 일어나는 부분
-          *******************************************/
-          try {
-            await customAxios
-              .get(
-                `/api/program/${currentChannel}`,
-                {
-                  headers: {Authorization: `Bearer ${accessToken}`},
-                },
-              )
-              .then(response => {
-                const pl = JSON.stringify(response.data.data);
-                setFilteredProgram(JSON.parse(pl));
-                console.log("program init done");
-                console.log(response.data.data);
-              });
-          } catch (error) {
-            const errorResponse = (error as AxiosError).response as any;
-            console.log(errorResponse?.data.error.code);
-            Alert.alert('알림', `${errorResponse?.data.error.code}`);
-          }
-          }
-        }
+        onPress={() => {programSet(item)}}
         backgroundColor={backgroundColor}
         textColor={color}
       />
@@ -126,7 +130,7 @@ const ProgramList = () => {
   };
 
   const renderProgram = ({ item }) => (
-    <Program title={item.programTitle} />
+    <Program title={item.programTitle} onPress={() => toProgramDetail(item.programId)} />
   );
 
   // useEffect(() => {
@@ -317,6 +321,13 @@ const styles = StyleSheet.create({
   unBookmarkStar: {
     color: '#d3d3d3',
   },
+
+  logo: {
+    width: 300,
+    //height: 50,
+    borderColor: 'gray',
+    borderWidth: 1,
+  }
 });
 
 export default ProgramList;
