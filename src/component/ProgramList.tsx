@@ -31,14 +31,13 @@ const ProgramList = () => {
   const [filteredChannel, setFilteredChannel] = useState(channelList);
   const [filteredProgram, setFilteredProgram] = useState(programList);
   const [noResult, setNoResult] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(true);
 
   const initList = async () => {
     accessToken = await EncryptedStorage.getItem('accessToken');
     const cl = await EncryptedStorage.getItem('channelList');
     channelList = JSON.parse(cl);
     setFilteredChannel(channelList);
-    setChannel(filteredChannel[0].channelId);
+    setChannel(channelList.channelId);
     programSet(filteredChannel[0]);
     bookmarkSet();
   }
@@ -46,10 +45,6 @@ const ProgramList = () => {
   useEffect(() => {
     initList();
   },[]);
-
-  const handleBookmarkPress = () => {
-    setIsBookmarked(!isBookmarked);
-  };
 
   const toProgramDetail = (programId: number) => {
     navigation.navigate('ProgramDetail', {programId});
@@ -97,20 +92,51 @@ const ProgramList = () => {
     }
   }
 
+  const returnBookmark = (item) => {
+    return bookmarkList.filter(bookmark => bookmark.programId==item.programId);
+  }
+
+  const handleBookmarkPress = async (item) => {
+    const bookmark = returnBookmark(item);
+    if(bookmark.length == 0){
+      try {
+        await customAxios
+          .post(
+            `/api/bookmark/`,
+            {
+              
+            },
+            {
+              headers: {Authorization: `Bearer ${accessToken}`},
+            },
+          )
+          .then(response => {
+            const bl = JSON.stringify(response.data.data);
+            bookmarkList=JSON.parse(bl);
+            console.log(bookmarkList);
+          });
+      } catch (error) {
+        const errorResponse = (error as AxiosError).response as any;
+        console.log(errorResponse?.data.error.code);
+        Alert.alert('알림', `${errorResponse?.data.error.code}`);
+      }
+    }
+  };
+
   const Channel = ({ item, onPress, backgroundColor, textColor}) => (
     <TouchableOpacity onPress={onPress} style={[styles.channelList, {backgroundColor}]}>
       <Text style={[styles.channelName, {color: textColor}]}>{item.channelName}</Text>
     </TouchableOpacity>
   );
 
-  const Program = ({title, onPress}) => (
+  const Program = ({item, onPress}) => (
     <TouchableOpacity style={styles.programList} onPress={onPress}>
-      <Text style={styles.programTitle}>{title}</Text>
-      <TouchableOpacity style={styles.bookmark} onPress={handleBookmarkPress}>
+      <Text style={styles.programTitle}>{item.programTitle}</Text>
+      <TouchableOpacity style={styles.bookmark} onPress={() => handleBookmarkPress(item.programId)}>
           <FontAwesomeIcon
             icon={faStar}
             size={26}
-            style={isBookmarked ? styles.bookmarkStar : styles.unBookmarkStar}
+            style={returnBookmark(item).length != 0 ? styles.bookmarkStar : styles.unBookmarkStar}
           />
         </TouchableOpacity>
     </TouchableOpacity>
@@ -130,7 +156,7 @@ const ProgramList = () => {
   };
 
   const renderProgram = ({ item }) => (
-    <Program title={item.programTitle} onPress={() => toProgramDetail(item.programId)} />
+    <Program item={item} onPress={() => toProgramDetail(item.programId)} bookmarkOnPress={() => addBookmark(item)} />
   );
 
   // useEffect(() => {
