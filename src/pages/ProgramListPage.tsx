@@ -40,29 +40,8 @@ const ProgramListPage = () => {
         console.log(errorResponse?.data.error.code);
         Alert.alert('알림', `${errorResponse?.data.error.code}`);
       }
-
-      try {
-        await customAxios
-          .get(
-            `/api/program/`,
-            {
-              headers: {Authorization: `Bearer ${accessToken}`},
-            },
-          )
-          .then(response => {
-            EncryptedStorage.setItem(
-              'programList',
-               JSON.stringify(response.data.data),
-            );
-          });
-      } catch (error) {
-        const errorResponse = (error as AxiosError).response as any;
-        console.log(errorResponse?.data.error.code);
-        Alert.alert('알림', `${errorResponse?.data.error.code}`);
-      }
     }
-    initChannelList();
-  })
+  },[])
 
   return (
     <View style={styles.container}>
