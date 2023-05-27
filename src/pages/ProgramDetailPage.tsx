@@ -36,8 +36,10 @@ function ProgramDetailPage({navigation, route}: ProgramDetailPageProps) {
     <View style={styles.container}>
       <Image source={{uri: program.imageUrl}} style={styles.image} />
       <View style={styles.nameContainer}>
-        <Text style={styles.name}>{program.name}</Text>
-
+        <View>
+          <Text style={styles.name}>{program.name}</Text>
+          <Text style={styles.schedule}>{program.schedule}</Text>
+        </View>
         <TouchableOpacity onPress={handleBookmarkPress}>
           <FontAwesomeIcon
             icon={faStar}
@@ -46,12 +48,11 @@ function ProgramDetailPage({navigation, route}: ProgramDetailPageProps) {
           />
         </TouchableOpacity>
       </View>
-      <Text style={styles.schedule}>{program.schedule}</Text>
-      <TouchableOpacity style={styles.button} onPress={toArticles}>
-        <Text style={styles.buttonText}>{program.name} 게시판</Text>
+      <TouchableOpacity onPress={toArticles}>
+        <Text style={styles.button}>{program.name} 게시판</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>{program.name} 실시간 채팅</Text>
+      <TouchableOpacity>
+        <Text style={styles.button}>{program.name} 실시간 채팅</Text>
       </TouchableOpacity>
     </View>
   );
@@ -62,6 +63,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#fff'
   },
   image: {
     width: '100%',
@@ -73,14 +75,18 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     marginRight: 5,
     paddingTop: 10,
+    color: 'black',
   },
   nameContainer: {
+    width: 300,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   schedule: {
     fontSize: 18,
     marginBottom: 16,
+    color: 'black',
   },
   bookmarkStar: {
     color: '#ffd700',
@@ -88,19 +94,25 @@ const styles = StyleSheet.create({
   unBookmarkStar: {
     color: '#d3d3d3',
   },
+
   button: {
-    backgroundColor: '#9acd32',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 8,
-    marginVertical: 8,
-    width: '60%',
-  },
-  buttonText: {
-    color: 'white',
+    backgroundColor: '#4A3AFF',
+    width: 300,
+    height: 55,
+    borderRadius: 46,
     fontSize: 18,
-    fontWeight: 'bold',
+    color: '#fff',
+    margin: 10,
     textAlign: 'center',
+    textAlignVertical: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   bookmarkButton: {
     backgroundColor: 'white',
