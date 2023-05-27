@@ -17,6 +17,8 @@ import EncryptedStorage from 'react-native-encrypted-storage';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faStar} from '@fortawesome/free-solid-svg-icons';
 import {useNavigation} from '@react-navigation/native';
+import {useSelector} from 'react-redux';
+import {RootState} from '../store/reducer';
 
 let channelList = [];
 let programList = [];
@@ -25,21 +27,22 @@ let accessToken;
 
 const ProgramList = () => {
   const navigation = useNavigation();
-  const [currentChannel, setChannel] = useState(0);
+  const [currentChannel, setCurrentChannel] = useState(0);
   const [searchTarget, setSearchTarget] = useState('channel');
   const [searchText, setSearchText] = useState("");
   const [filteredChannel, setFilteredChannel] = useState(channelList);
   const [filteredProgram, setFilteredProgram] = useState(programList);
   const [noResult, setNoResult] = useState(false);
+  const [bookmarkNum, setBookmarkNum] = useState(bookmarkList.length);
+  const myId = useSelector((state: RootState) => state.user.userId);
 
   const initList = async () => {
     accessToken = await EncryptedStorage.getItem('accessToken');
     const cl = await EncryptedStorage.getItem('channelList');
     channelList = JSON.parse(cl);
-    setFilteredChannel(channelList);
-    setChannel(channelList.channelId);
-    programSet(filteredChannel[0]);
     bookmarkSet();
+    setFilteredChannel(channelList);
+    programSet(channelList[0]);
   }
 
   useEffect(() => {
@@ -51,7 +54,7 @@ const ProgramList = () => {
   };
 
   const programSet = async (item) => {
-    setChannel(item.channelId);
+    setCurrentChannel(item.channelId);
     try {
       await customAxios
         .get(
@@ -83,13 +86,13 @@ const ProgramList = () => {
         .then(response => {
           const bl = JSON.stringify(response.data.data);
           bookmarkList=JSON.parse(bl);
-          console.log(bookmarkList);
         });
     } catch (error) {
       const errorResponse = (error as AxiosError).response as any;
       console.log(errorResponse?.data.error.code);
       Alert.alert('알림', `${errorResponse?.data.error.code}`);
     }
+    setBookmarkNum(bookmarkList.length);
   }
 
   const returnBookmark = (item) => {
@@ -98,22 +101,22 @@ const ProgramList = () => {
 
   const handleBookmarkPress = async (item) => {
     const bookmark = returnBookmark(item);
+    console.log(item.programId);
     if(bookmark.length == 0){
       try {
         await customAxios
           .post(
             `/api/bookmark/`,
             {
-              
+              memberId: myId,
+              programId: item.programId
             },
             {
               headers: {Authorization: `Bearer ${accessToken}`},
             },
           )
           .then(response => {
-            const bl = JSON.stringify(response.data.data);
-            bookmarkList=JSON.parse(bl);
-            console.log(bookmarkList);
+            console.log(response.data);
           });
       } catch (error) {
         const errorResponse = (error as AxiosError).response as any;
@@ -121,6 +124,25 @@ const ProgramList = () => {
         Alert.alert('알림', `${errorResponse?.data.error.code}`);
       }
     }
+    else{
+      try {
+        await customAxios
+          .delete(
+            `/api/bookmark/{bookmark-id}?bookmark-id=${bookmark[0].id}`,
+            {
+              headers: {Authorization: `Bearer ${accessToken}`},
+            },
+          )
+          .then(response => {
+            console.log(response.data);
+          });
+      } catch (error) {
+        const errorResponse = (error as AxiosError).response as any;
+        console.log(errorResponse?.data.error.code);
+        Alert.alert('알림', `${errorResponse?.data.error.code}`);
+      }
+    }
+    bookmarkSet();
   };
 
   const Channel = ({ item, onPress, backgroundColor, textColor}) => (
@@ -132,8 +154,9 @@ const ProgramList = () => {
   const Program = ({item, onPress}) => (
     <TouchableOpacity style={styles.programList} onPress={onPress}>
       <Text style={styles.programTitle}>{item.programTitle}</Text>
-      <TouchableOpacity style={styles.bookmark} onPress={() => handleBookmarkPress(item.programId)}>
+      <TouchableOpacity style={styles.bookmark} onPress={() => handleBookmarkPress(item)}>
           <FontAwesomeIcon
+            id={item.programid}
             icon={faStar}
             size={26}
             style={returnBookmark(item).length != 0 ? styles.bookmarkStar : styles.unBookmarkStar}
@@ -170,7 +193,7 @@ const ProgramList = () => {
   //       setNoResult(false);
   //       setFilteredChannel(filtered);
   //     }
-  //     setChannel(filteredChannel[0].channelId);
+  //     setCurrentChannel(filteredChannel[0].channelId);
   //   }
   //   else if(searchTarget=='program'){
   //     const filtered = [];
@@ -192,7 +215,7 @@ const ProgramList = () => {
   //       setFilteredProgram(filtered);
   //       setFilteredChannel(filteredCh);
   //     }
-  //     setChannel(filteredChannel[0].channelId);
+  //     setCurrentChannel(filteredChannel[0].channelId);
   //   }
   // }, [searchText]);
 
@@ -245,6 +268,7 @@ const ProgramList = () => {
               data={filteredProgram}
               renderItem={renderProgram}
               keyExtractor={item => item.id}
+              extraData={bookmarkList}
             />
           )
         }
