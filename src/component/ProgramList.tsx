@@ -38,6 +38,7 @@ const ProgramList = () => {
   const myId = useSelector((state: RootState) => state.user.userId);
   const isFocused = useIsFocused();
 
+
   const initList = async () => {
     accessToken = await EncryptedStorage.getItem('accessToken');
     const cl = await EncryptedStorage.getItem('channelList');
@@ -50,6 +51,7 @@ const ProgramList = () => {
   useEffect(() => {
     initList();
   },[]);
+
 
   useEffect(() => {
     bookmarkSet();

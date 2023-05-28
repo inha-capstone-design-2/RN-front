@@ -12,6 +12,8 @@ import SignUpPage from './src/pages/SignUpPage';
 import AlarmSettingPage from './src/pages/AlarmSettingPage';
 import ArticlesPage from './src/pages/ArticlesPage';
 import ArticlePage from './src/pages/ArticlePage';
+import ProgramList from './src/component/ProgramList';
+import ProgramBar from './src/component/ProgramBar';
 import userSlice from './src/slices/user';
 import {useSelector} from 'react-redux';
 import {RootState} from './src/store/reducer';
