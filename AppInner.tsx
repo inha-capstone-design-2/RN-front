@@ -17,10 +17,13 @@ import {useSelector} from 'react-redux';
 import {RootState} from './src/store/reducer';
 import WriteArticlePage from './src/pages/WriteArticlePage';
 import EncryptedStorage from 'react-native-encrypted-storage';
-import axios, {AxiosError} from 'axios';
+import axios from 'axios';
 import socket from './src/utils/useSocket';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faList, faStar, faComments, faGear} from '@fortawesome/free-solid-svg-icons';
+import jwt_decode from 'jwt-decode';
+import {customAxios} from './src/utils/customAxios';
+import {useAppDispatch} from './src/store';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -29,8 +32,8 @@ export type LoggedInParamList = {
   Favorites: undefined;
   ChatList: undefined;
   Chat: {
-    roomId: number;
-    roomName: string;
+    programId: number;
+    programName: string;
     onAir: boolean;
   };
   ProgramDetail: {
@@ -127,6 +130,8 @@ function Tabs() {
 }
 
 function AppInner() {
+  const dispatch = useAppDispatch();
+
   const isLoggedIn = useSelector(
     (state: RootState) => !!state.user.accessToken,
   );
@@ -135,6 +140,46 @@ function AppInner() {
     socket.on('connect', () => {
       console.log('socket connected');
     });
+  }, []);
+
+  // token이 있다면 즉시 로그인
+  useEffect(() => {
+    const getAccessToken = async () => {
+      const accessToken = await EncryptedStorage.getItem('accessToken');
+      const refreshToken = await EncryptedStorage.getItem('refreshToken');
+
+      if (accessToken && refreshToken) {
+        var decoded = jwt_decode(accessToken) as any;
+
+        if (!decoded.sub) {
+          console.log('invalid user');
+        }
+
+        const myId = parseInt(decoded.sub);
+
+        await customAxios
+          .get(`/api/member/{member-id}?member-id=${myId!}`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          })
+          .then(response => {
+            const {nickname, email} = response.data.data;
+
+            dispatch(
+              userSlice.actions.setUser({
+                userId: myId,
+                nickname: nickname,
+                email: email,
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+              }),
+            );
+          });
+      }
+    };
+
+    getAccessToken();
   }, []);
 
   useEffect(() => {
@@ -236,6 +281,3 @@ function AppInner() {
 }
 
 export default AppInner;
-function dispatch(arg0: {payload: any; type: 'user/setUser'}) {
-  throw new Error('Function not implemented.');
-}

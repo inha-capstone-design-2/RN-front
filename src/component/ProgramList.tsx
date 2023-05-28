@@ -8,6 +8,7 @@ import {
   StatusBar, 
   TouchableOpacity,
   Alert,
+  Image,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import axios, {AxiosError} from 'axios';
@@ -15,64 +16,141 @@ import {customAxios} from '../utils/customAxios';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faStar} from '@fortawesome/free-solid-svg-icons';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../AppInner';
-
-
+import {useNavigation} from '@react-navigation/native';
+import {useSelector} from 'react-redux';
+import {RootState} from '../store/reducer';
+import { useIsFocused } from '@react-navigation/native'
 
 let channelList = [];
 let programList = [];
+let bookmarkList = [];
+let accessToken;
 
 const ProgramList = () => {
-  const [currentChannel, setChannel] = useState(0);
+  const navigation = useNavigation();
+  const [currentChannel, setCurrentChannel] = useState(0);
   const [searchTarget, setSearchTarget] = useState('channel');
   const [searchText, setSearchText] = useState("");
   const [filteredChannel, setFilteredChannel] = useState(channelList);
   const [filteredProgram, setFilteredProgram] = useState(programList);
   const [noResult, setNoResult] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(true);
+  const [bookmarkNum, setBookmarkNum] = useState(bookmarkList.length);
+  const myId = useSelector((state: RootState) => state.user.userId);
+  const isFocused = useIsFocused();
+
+  const initList = async () => {
+    accessToken = await EncryptedStorage.getItem('accessToken');
+    const cl = await EncryptedStorage.getItem('channelList');
+    channelList = JSON.parse(cl);
+    bookmarkSet();
+    setFilteredChannel(channelList);
+    programSet(channelList[0]);
+  }
 
   useEffect(() => {
-    const initList = async () => {
-      const accessToken = await EncryptedStorage.getItem('accessToken');
-      const cl = await EncryptedStorage.getItem('channelList');
-      channelList = JSON.parse(cl);
-      const pl = await EncryptedStorage.getItem('programList');
-      programList = JSON.parse(pl);
-      setFilteredChannel(channelList);
-      setFilteredProgram(programList);
-      setChannel(filteredChannel[0].channelId);
-      // try {
-      //   await customAxios
-      //     .get(
-      //       `/api/program/{channel-id}?channel-id=1`,
-      //       {
-      //         headers: {Authorization: `Bearer ${accessToken}`},
-              
-      //       },
-      //     )
-      //     .then(response => {
-      //       const pl = response.data.data
-      //       setFilteredProgram(JSON.parse(pl));
-      //       console.log("program init done");
-      //       console.log(response.data.data);
-      //     });
-      // } catch (error) {
-      //   const errorResponse = (error as AxiosError).response as any;
-      //   console.log(errorResponse?.data.error.code);
-      //   Alert.alert('알림', `${errorResponse?.data.error.code}`);
-      // }
-    }
     initList();
   },[]);
 
-  const handleBookmarkPress = () => {
-    setIsBookmarked(!isBookmarked);
+  useEffect(() => {
+    bookmarkSet();
+  },[isFocused]);
+
+  const toProgramDetail = (programId: number, item) => {
+    const isBookmarked = (returnBookmark(item).length != 0);
+    navigation.navigate('ProgramDetail', {programId, isBookmarked});
   };
 
-  const toProgramDetail = () => {
-    navigation.navigate('ProgramDetailPage');
+  const programSet = async (item) => {
+    setCurrentChannel(item.channelId);
+    try {
+      await customAxios
+        .get(
+          `/api/program/{channel-id}?channel-id=${item.channelId}`,
+          {
+            headers: {Authorization: `Bearer ${accessToken}`},
+          },
+        )
+        .then(response => {
+          const pl = JSON.stringify(response.data.data);
+          setFilteredProgram(JSON.parse(pl));
+        });
+    } catch (error) {
+      const errorResponse = (error as AxiosError).response as any;
+      console.log(errorResponse?.data.error.code);
+      Alert.alert('알림', `${errorResponse?.data.error.code}`);
+    }
+  };
+
+  const bookmarkSet = async () => {
+    try {
+      await customAxios
+        .get(
+          `/api/bookmark/`,
+          {
+            headers: {Authorization: `Bearer ${accessToken}`},
+          },
+        )
+        .then(response => {
+          const bl = JSON.stringify(response.data.data);
+          bookmarkList=JSON.parse(bl);
+        });
+    } catch (error) {
+      const errorResponse = (error as AxiosError).response as any;
+      console.log(errorResponse?.data.error.code);
+      Alert.alert('알림', `${errorResponse?.data.error.code}`);
+    }
+    setBookmarkNum(bookmarkList.length);
   }
+
+  const returnBookmark = (item) => {
+    return bookmarkList.filter(bookmark => bookmark.programId==item.programId);
+  }
+
+  const handleBookmarkPress = async (item) => {
+    const bookmark = returnBookmark(item);
+    console.log(item.programId);
+    if(bookmark.length == 0){
+      try {
+        await customAxios
+          .post(
+            `/api/bookmark/`,
+            {
+              memberId: myId,
+              programId: item.programId
+            },
+            {
+              headers: {Authorization: `Bearer ${accessToken}`},
+            },
+          )
+          .then(response => {
+            console.log(response.data);
+          });
+      } catch (error) {
+        const errorResponse = (error as AxiosError).response as any;
+        console.log(errorResponse?.data.error.code);
+        Alert.alert('알림', `${errorResponse?.data.error.code}`);
+      }
+    }
+    else{
+      try {
+        await customAxios
+          .delete(
+            `/api/bookmark/{bookmark-id}?bookmark-id=${bookmark[0].id}`,
+            {
+              headers: {Authorization: `Bearer ${accessToken}`},
+            },
+          )
+          .then(response => {
+            console.log(response.data);
+          });
+      } catch (error) {
+        const errorResponse = (error as AxiosError).response as any;
+        console.log(errorResponse?.data.error.code);
+        Alert.alert('알림', `${errorResponse?.data.error.code}`);
+      }
+    }
+    bookmarkSet();
+  };
 
   const Channel = ({ item, onPress, backgroundColor, textColor}) => (
     <TouchableOpacity onPress={onPress} style={[styles.channelList, {backgroundColor}]}>
@@ -80,14 +158,15 @@ const ProgramList = () => {
     </TouchableOpacity>
   );
 
-  const Program = ({title}) => (
-    <TouchableOpacity style={styles.programList} >
-      <Text style={styles.programTitle}>{title}</Text>
-      <TouchableOpacity style={styles.bookmark} onPress={handleBookmarkPress}>
+  const Program = ({item, onPress}) => (
+    <TouchableOpacity style={styles.programList} onPress={onPress}>
+      <Text style={styles.programTitle}>{item.programTitle}</Text>
+      <TouchableOpacity style={styles.bookmark} onPress={() => handleBookmarkPress(item)}>
           <FontAwesomeIcon
+            id={item.programid}
             icon={faStar}
             size={26}
-            style={isBookmarked ? styles.bookmarkStar : styles.unBookmarkStar}
+            style={returnBookmark(item).length != 0 ? styles.bookmarkStar : styles.unBookmarkStar}
           />
         </TouchableOpacity>
     </TouchableOpacity>
@@ -99,33 +178,7 @@ const ProgramList = () => {
     return (
       <Channel 
         item={item}
-        onPress={async () => {
-          setChannel(item.channelId);
-          const accessToken = await EncryptedStorage.getItem('accessToken');
-          /******************************************
-            에러 일어나는 부분
-          *******************************************/
-          try {
-            await customAxios
-              .get(
-                `/api/program/${currentChannel}`,
-                {
-                  headers: {Authorization: `Bearer ${accessToken}`},
-                },
-              )
-              .then(response => {
-                const pl = JSON.stringify(response.data.data);
-                setFilteredProgram(JSON.parse(pl));
-                console.log("program init done");
-                console.log(response.data.data);
-              });
-          } catch (error) {
-            const errorResponse = (error as AxiosError).response as any;
-            console.log(errorResponse?.data.error.code);
-            Alert.alert('알림', `${errorResponse?.data.error.code}`);
-          }
-          }
-        }
+        onPress={() => {programSet(item)}}
         backgroundColor={backgroundColor}
         textColor={color}
       />
@@ -133,7 +186,7 @@ const ProgramList = () => {
   };
 
   const renderProgram = ({ item }) => (
-    <Program title={item.programTitle} />
+    <Program item={item} onPress={() => toProgramDetail(item.programId, item)} bookmarkOnPress={() => addBookmark(item)} />
   );
 
   // useEffect(() => {
@@ -147,7 +200,7 @@ const ProgramList = () => {
   //       setNoResult(false);
   //       setFilteredChannel(filtered);
   //     }
-  //     setChannel(filteredChannel[0].channelId);
+  //     setCurrentChannel(filteredChannel[0].channelId);
   //   }
   //   else if(searchTarget=='program'){
   //     const filtered = [];
@@ -169,7 +222,7 @@ const ProgramList = () => {
   //       setFilteredProgram(filtered);
   //       setFilteredChannel(filteredCh);
   //     }
-  //     setChannel(filteredChannel[0].channelId);
+  //     setCurrentChannel(filteredChannel[0].channelId);
   //   }
   // }, [searchText]);
 
@@ -222,6 +275,7 @@ const ProgramList = () => {
               data={filteredProgram}
               renderItem={renderProgram}
               keyExtractor={item => item.id}
+              extraData={bookmarkList}
             />
           )
         }
@@ -324,6 +378,13 @@ const styles = StyleSheet.create({
   unBookmarkStar: {
     color: '#d3d3d3',
   },
+
+  logo: {
+    width: 300,
+    //height: 50,
+    borderColor: 'gray',
+    borderWidth: 1,
+  }
 });
 
 export default ProgramList;

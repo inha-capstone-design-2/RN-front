@@ -1,5 +1,13 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {View, Text, TextInput, Alert} from 'react-native';
+import { 
+  View, 
+  TextInput, 
+  StyleSheet,
+  StatusBar,
+  TouchableOpacity,
+  Text,
+  Alert,
+} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {LoggedInParamList} from '../../AppInner';
 import {useSelector} from 'react-redux';
@@ -23,7 +31,6 @@ function WriteArticlePage({navigation, route}: WriteArticlePageProps) {
   const [content, setContent] = useState('');
 
   const submitArticle = async () => {
-    console.log(userId);
     try {
       await customAxios
         .post(
@@ -50,22 +57,74 @@ function WriteArticlePage({navigation, route}: WriteArticlePageProps) {
   };
 
   return (
-    <View>
-      <View>
-        <TextInput placeholder="제목" value={title} onChangeText={setTitle} />
-        <TextInput
-          placeholder="내용"
-          value={content}
-          onChangeText={setContent}
-          multiline={true}
-        />
-      </View>
-
-      <View>
-        <Button onPress={submitArticle} title="작성완료"></Button>
-      </View>
+    <View style={styles.container}>
+      <TextInput
+        style={styles.title}
+        placeholder="제목"
+        value={title}
+        onChangeText={setTitle}
+      />
+      <TextInput
+        style={styles.content}
+        placeholder="내용을 입력하세요"
+        value={content}
+        onChangeText={setContent}
+      />
+      <TouchableOpacity onPress={submitArticle}>
+        <Text style={styles.submit}>게시글 작성</Text>
+      </TouchableOpacity>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    marginTop: StatusBar.currentHeight || 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  title: {
+    fontWeight: 'bold',
+    alignSelf: 'stretch',
+    height: 55,
+    borderBottomWidth: 1,
+    borderColor: 'lightgray',
+    fontSize: 18,
+    color: '#6F6C90',
+    paddingHorizontal: 10,
+    margin: 10,
+  },
+
+  content: {
+    flex: 8,
+    fontSize: 14,
+    alignSelf: 'stretch',
+    margin:10,
+    paddingHorizontal: 10,
+    textAlignVertical: 'top',
+  },
+
+  submit: {
+    backgroundColor: '#4A3AFF',
+    width: 350,
+    height: 55,
+    borderRadius: 46,
+    fontSize: 18,
+    color: '#fff',
+    margin: 10,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+});
 
 export default WriteArticlePage;

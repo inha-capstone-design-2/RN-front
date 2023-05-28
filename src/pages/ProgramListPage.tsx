@@ -1,11 +1,14 @@
-import React, {useState} from 'react';
-import {View, StyleSheet} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, StyleSheet, Alert} from 'react-native';
 import {Button} from 'react-native-elements';
 import ProgramBar from '../component/ProgramBar';
 import ProgramList from '../component/ProgramList';
+import {customAxios} from '../utils/customAxios';
+import axios, {AxiosError} from 'axios';
+import EncryptedStorage from 'react-native-encrypted-storage';
 
 const ProgramListPage = () => {
-  const [showProgramBar, setShowProgramBar] = useState(false);
+  const [showProgramBar, setShowProgramBar] = useState(true);
 
   const toggleShowProgramBar = () => {
     setShowProgramBar(true);
@@ -14,6 +17,31 @@ const ProgramListPage = () => {
   const toggleShowProgramList = () => {
     setShowProgramBar(false);
   };
+
+  useEffect(()=>{
+    const initChannelList = async () => {
+      const accessToken = await EncryptedStorage.getItem('accessToken');
+      try {
+        await customAxios
+          .get(
+            `/api/channel/`,
+            {
+              headers: {Authorization: `Bearer ${accessToken}`},
+            },
+          )
+          .then(response => {
+            EncryptedStorage.setItem(
+              'channelList',
+               JSON.stringify(response.data.data),
+            );
+          });
+      } catch (error) {
+        const errorResponse = (error as AxiosError).response as any;
+        console.log(errorResponse?.data.error.code);
+        Alert.alert('알림', `${errorResponse?.data.error.code}`);
+      }
+    }
+  },[])
 
   return (
     <View style={styles.container}>
@@ -68,12 +96,16 @@ const styles = StyleSheet.create({
     width: '50%',
   },
   activeButton: {
-    backgroundColor: 'gray',
+    backgroundColor: '#4A3AFF',
     height: '100%',
+    borderBottomWidth:1,
+    borderBottomColor: '#EFF0F6',
   },
   inactiveButton: {
     backgroundColor: 'white',
     height: '100%',
+    borderBottomWidth:1,
+    borderBottomColor: '#EFF0F6',
   },
   activeButtonTitle: {
     color: 'white',
