@@ -1,11 +1,11 @@
 import React, {useState, useEffect} from 'react';
 import {
-  View,
-  FlatList,
-  StyleSheet,
-  Text,
-  TextInput,
-  StatusBar,
+  View, 
+  FlatList, 
+  StyleSheet, 
+  Text, 
+  TextInput, 
+  StatusBar, 
   TouchableOpacity,
   Alert,
   Image,
@@ -19,7 +19,7 @@ import {faStar} from '@fortawesome/free-solid-svg-icons';
 import {useNavigation} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
 import {RootState} from '../store/reducer';
-import {useIsFocused} from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native'
 
 let channelList = [];
 let programList = [];
@@ -30,7 +30,7 @@ const ProgramList = () => {
   const navigation = useNavigation();
   const [currentChannel, setCurrentChannel] = useState(0);
   const [searchTarget, setSearchTarget] = useState('channel');
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const [filteredChannel, setFilteredChannel] = useState(channelList);
   const [filteredProgram, setFilteredProgram] = useState(programList);
   const [noResult, setNoResult] = useState(false);
@@ -39,37 +39,37 @@ const ProgramList = () => {
   const isFocused = useIsFocused();
 
   const initList = async () => {
-    const accessToken = useSelector(
-      (state: RootState) => state.user.accessToken,
-    );
-
+    accessToken = await EncryptedStorage.getItem('accessToken');
     const cl = await EncryptedStorage.getItem('channelList');
     channelList = JSON.parse(cl);
     bookmarkSet();
     setFilteredChannel(channelList);
     programSet(channelList[0]);
-  };
+  }
 
   useEffect(() => {
     initList();
-  }, []);
+  },[]);
 
   useEffect(() => {
     bookmarkSet();
-  }, [isFocused]);
+  },[isFocused]);
 
   const toProgramDetail = (programId: number, item) => {
-    const isBookmarked = returnBookmark(item).length != 0;
+    const isBookmarked = (returnBookmark(item).length != 0);
     navigation.navigate('ProgramDetail', {programId, isBookmarked});
   };
 
-  const programSet = async item => {
+  const programSet = async (item) => {
     setCurrentChannel(item.channelId);
     try {
       await customAxios
-        .get(`/api/program/{channel-id}?channel-id=${item.channelId}`, {
-          headers: {Authorization: `Bearer ${accessToken}`},
-        })
+        .get(
+          `/api/program/{channel-id}?channel-id=${item.channelId}`,
+          {
+            headers: {Authorization: `Bearer ${accessToken}`},
+          },
+        )
         .then(response => {
           const pl = JSON.stringify(response.data.data);
           setFilteredProgram(JSON.parse(pl));
@@ -84,12 +84,15 @@ const ProgramList = () => {
   const bookmarkSet = async () => {
     try {
       await customAxios
-        .get(`/api/bookmark/`, {
-          headers: {Authorization: `Bearer ${accessToken}`},
-        })
+        .get(
+          `/api/bookmark/`,
+          {
+            headers: {Authorization: `Bearer ${accessToken}`},
+          },
+        )
         .then(response => {
           const bl = JSON.stringify(response.data.data);
-          bookmarkList = JSON.parse(bl);
+          bookmarkList=JSON.parse(bl);
         });
     } catch (error) {
       const errorResponse = (error as AxiosError).response as any;
@@ -97,25 +100,23 @@ const ProgramList = () => {
       Alert.alert('알림', `${errorResponse?.data.error.code}`);
     }
     setBookmarkNum(bookmarkList.length);
-  };
+  }
 
-  const returnBookmark = item => {
-    return bookmarkList.filter(
-      bookmark => bookmark.programId == item.programId,
-    );
-  };
+  const returnBookmark = (item) => {
+    return bookmarkList.filter(bookmark => bookmark.programId==item.programId);
+  }
 
-  const handleBookmarkPress = async item => {
+  const handleBookmarkPress = async (item) => {
     const bookmark = returnBookmark(item);
     console.log(item.programId);
-    if (bookmark.length == 0) {
+    if(bookmark.length == 0){
       try {
         await customAxios
           .post(
             `/api/bookmark/`,
             {
               memberId: myId,
-              programId: item.programId,
+              programId: item.programId
             },
             {
               headers: {Authorization: `Bearer ${accessToken}`},
@@ -129,12 +130,16 @@ const ProgramList = () => {
         console.log(errorResponse?.data.error.code);
         Alert.alert('알림', `${errorResponse?.data.error.code}`);
       }
-    } else {
+    }
+    else{
       try {
         await customAxios
-          .delete(`/api/bookmark/{bookmark-id}?bookmark-id=${bookmark[0].id}`, {
-            headers: {Authorization: `Bearer ${accessToken}`},
-          })
+          .delete(
+            `/api/bookmark/{bookmark-id}?bookmark-id=${bookmark[0].id}`,
+            {
+              headers: {Authorization: `Bearer ${accessToken}`},
+            },
+          )
           .then(response => {
             console.log(response.data);
           });
@@ -147,58 +152,41 @@ const ProgramList = () => {
     bookmarkSet();
   };
 
-  const Channel = ({item, onPress, backgroundColor, textColor}) => (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.channelList, {backgroundColor}]}>
-      <Text style={[styles.channelName, {color: textColor}]}>
-        {item.channelName}
-      </Text>
+  const Channel = ({ item, onPress, backgroundColor, textColor}) => (
+    <TouchableOpacity onPress={onPress} style={[styles.channelList, {backgroundColor}]}>
+      <Text style={[styles.channelName, {color: textColor}]}>{item.channelName}</Text>
     </TouchableOpacity>
   );
 
   const Program = ({item, onPress}) => (
     <TouchableOpacity style={styles.programList} onPress={onPress}>
       <Text style={styles.programTitle}>{item.programTitle}</Text>
-      <TouchableOpacity
-        style={styles.bookmark}
-        onPress={() => handleBookmarkPress(item)}>
-        <FontAwesomeIcon
-          id={item.programid}
-          icon={faStar}
-          size={26}
-          style={
-            returnBookmark(item).length != 0
-              ? styles.bookmarkStar
-              : styles.unBookmarkStar
-          }
-        />
-      </TouchableOpacity>
+      <TouchableOpacity style={styles.bookmark} onPress={() => handleBookmarkPress(item)}>
+          <FontAwesomeIcon
+            id={item.programid}
+            icon={faStar}
+            size={26}
+            style={returnBookmark(item).length != 0 ? styles.bookmarkStar : styles.unBookmarkStar}
+          />
+        </TouchableOpacity>
     </TouchableOpacity>
-  );
+  )
 
-  const renderChannel = ({item}) => {
-    const backgroundColor =
-      item.channelId === currentChannel ? '#4A3AFF' : '#EFF0F6';
+  const renderChannel = ({ item }) => {
+    const backgroundColor = item.channelId === currentChannel ? '#4A3AFF' : '#EFF0F6';
     const color = item.channelId === currentChannel ? 'white' : 'black';
     return (
-      <Channel
+      <Channel 
         item={item}
-        onPress={() => {
-          programSet(item);
-        }}
+        onPress={() => {programSet(item)}}
         backgroundColor={backgroundColor}
         textColor={color}
       />
-    );
+    )
   };
 
-  const renderProgram = ({item}) => (
-    <Program
-      item={item}
-      onPress={() => toProgramDetail(item.programId, item)}
-      bookmarkOnPress={() => addBookmark(item)}
-    />
+  const renderProgram = ({ item }) => (
+    <Program item={item} onPress={() => toProgramDetail(item.programId, item)} bookmarkOnPress={() => addBookmark(item)} />
   );
 
   // useEffect(() => {
@@ -241,8 +229,9 @@ const ProgramList = () => {
   useEffect(() => {
     setFilteredChannel(channelList);
     setFilteredProgram(programList);
-    setSearchText('');
+    setSearchText("");
   }, [searchTarget]);
+
 
   return (
     <View style={styles.container}>
@@ -251,44 +240,45 @@ const ProgramList = () => {
           style={styles.picker}
           mode="dropdown"
           selectedValue={searchTarget}
-          onValueChange={(itemValue, itemIndex) => setSearchTarget(itemValue)}>
+          onValueChange={(itemValue, itemIndex) =>
+            setSearchTarget(itemValue)
+          }
+        >
           <Picker.Item label="채널" value="channel" />
           <Picker.Item label="프로그램" value="program" />
         </Picker>
-        <TextInput
+        <TextInput 
           style={styles.input}
-          onChangeText={text => setSearchText(text)}
+          onChangeText={(text) => setSearchText(text)}
           value={searchText}
-          placeholder={
-            searchTarget == 'channel'
-              ? '채널 이름으로 검색'
-              : '프로그램 이름으로 검색'
-          }
+          placeholder={searchTarget=='channel' ? "채널 이름으로 검색" : "프로그램 이름으로 검색"}
         />
       </View>
       <View style={styles.main}>
         <View style={styles.channel}>
           <FlatList
             data={filteredChannel}
-            horizontal={true}
+            horizontal = {true}
             renderItem={renderChannel}
             keyExtractor={item => item.channelId}
             extraData={currentChannel}
             showsHorizontalScrollIndicator={false}
           />
         </View>
-        <View></View>
+        <View>
+        </View>
         <View>
           {noResult ? (
             <Text>검색 결과가 없습니다</Text>
-          ) : (
+          ):(
             <FlatList
               data={filteredProgram}
               renderItem={renderProgram}
               keyExtractor={item => item.id}
               extraData={bookmarkList}
             />
-          )}
+          )
+        }
         </View>
       </View>
     </View>
@@ -314,7 +304,7 @@ const styles = StyleSheet.create({
   },
 
   picker: {
-    marginHorizontal: 5,
+    marginHorizontal:5,
   },
 
   input: {
@@ -322,13 +312,14 @@ const styles = StyleSheet.create({
     width: 370,
     height: 55,
     borderWidth: 1,
-    borderColor: '#EFF0F6',
+    borderColor: "#EFF0F6",
     borderRadius: 46,
     fontSize: 16,
-    color: '#6F6C90',
+    color: "#6F6C90",
     paddingLeft: 18,
-    marginHorizontal: 10,
+    marginHorizontal:10,
     marginBottom: 10,
+    
   },
 
   channel: {
@@ -357,8 +348,8 @@ const styles = StyleSheet.create({
 
   programList: {
     flexDirection: 'row',
-    padding: 15,
-    borderBottomWidth: 1,
+    padding:15,
+    borderBottomWidth:1,
     borderBottomColor: '#EFF0F6',
     justifyContent: 'space-between',
   },
@@ -366,7 +357,7 @@ const styles = StyleSheet.create({
   programTime: {
     fontSize: 15,
     margin: 5,
-    textAlignVertical: 'center',
+    textAlignVertical: 'center'
   },
 
   programTitle: {
@@ -377,7 +368,9 @@ const styles = StyleSheet.create({
     color: 'black',
   },
 
-  bookmark: {},
+  bookmark: {
+    
+  },
 
   bookmarkStar: {
     color: '#ffd700',
@@ -391,7 +384,7 @@ const styles = StyleSheet.create({
     //height: 50,
     borderColor: 'gray',
     borderWidth: 1,
-  },
+  }
 });
 
 export default ProgramList;
