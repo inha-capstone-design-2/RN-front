@@ -19,6 +19,7 @@ import {faStar} from '@fortawesome/free-solid-svg-icons';
 import {useNavigation} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
 import {RootState} from '../store/reducer';
+import { useIsFocused } from '@react-navigation/native'
 
 let channelList = [];
 let programList = [];
@@ -35,6 +36,8 @@ const ProgramList = () => {
   const [noResult, setNoResult] = useState(false);
   const [bookmarkNum, setBookmarkNum] = useState(bookmarkList.length);
   const myId = useSelector((state: RootState) => state.user.userId);
+  const isFocused = useIsFocused();
+
 
   const initList = async () => {
     accessToken = await EncryptedStorage.getItem('accessToken');
@@ -49,8 +52,14 @@ const ProgramList = () => {
     initList();
   },[]);
 
-  const toProgramDetail = (programId: number) => {
-    navigation.navigate('ProgramDetail', {programId});
+
+  useEffect(() => {
+    bookmarkSet();
+  },[isFocused]);
+
+  const toProgramDetail = (programId: number, item) => {
+    const isBookmarked = (returnBookmark(item).length != 0);
+    navigation.navigate('ProgramDetail', {programId, isBookmarked});
   };
 
   const programSet = async (item) => {
@@ -179,7 +188,7 @@ const ProgramList = () => {
   };
 
   const renderProgram = ({ item }) => (
-    <Program item={item} onPress={() => toProgramDetail(item.programId)} bookmarkOnPress={() => addBookmark(item)} />
+    <Program item={item} onPress={() => toProgramDetail(item.programId, item)} bookmarkOnPress={() => addBookmark(item)} />
   );
 
   // useEffect(() => {
