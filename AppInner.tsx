@@ -56,14 +56,20 @@ export type RootStackParamList = {
 
 function Tabs() {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      tabBarOptions={{
+        activeTintColor: '#4A3AFF',
+        inactiveTintColor: 'gray',
+      }}
+    >
       <Tab.Screen
         name="ProgramList"
         component={ProgramListPage}
         options={
           {headerShown: false,
-            tabBarIcon: () => (
+            tabBarIcon: ({ focused }) => (
               <FontAwesomeIcon
+              style={focused? {color: '#4A3AFF'} : {color: 'gray'}}
               icon={faList}
               size={26}
               />
@@ -76,8 +82,9 @@ function Tabs() {
         component={FavoritesPage}
         options={
           {headerShown: false,
-            tabBarIcon: () => (
+            tabBarIcon: ({ focused }) => (
               <FontAwesomeIcon
+              style={focused? {color: '#4A3AFF'} : {color: 'gray'}}
               icon={faStar}
               size={26}
               />
@@ -90,8 +97,9 @@ function Tabs() {
         component={ChatListPage}
         options={
           {headerShown: false,
-            tabBarIcon: () => (
+            tabBarIcon: ({ focused }) => (
               <FontAwesomeIcon
+              style={focused? {color: '#4A3AFF'} : {color: 'gray'}}
               icon={faComments}
               size={26}
               />
@@ -104,8 +112,9 @@ function Tabs() {
         component={SettingPage}
         options={
           {headerShown: false,
-            tabBarIcon: () => (
+            tabBarIcon: ({ focused }) => (
               <FontAwesomeIcon
+              style={focused? {color: '#4A3AFF'} : {color: 'gray'}}
               icon={faGear}
               size={26}
               />
