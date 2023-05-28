@@ -28,6 +28,10 @@ function SignInPage({navigation}: SignInPageProps) {
     try {
       const encoding = base64.encode(`${email}:${password}`);
 
+      let myRefreshToken: string;
+      let myAccessToken: string;
+      let myId: number;
+
       await customAxios
         .post(
           `/api/auth/login`,
@@ -36,7 +40,7 @@ function SignInPage({navigation}: SignInPageProps) {
             headers: {Authorization: `basic ${encoding}`},
           },
         )
-        .then(response => {
+        .then(async response => {
           const {accessToken, refreshToken} = response.data.data;
 
           var decoded = jwt_decode(accessToken) as any;
@@ -45,22 +49,38 @@ function SignInPage({navigation}: SignInPageProps) {
             console.log('invalid user');
           }
 
-          dispatch(
-            userSlice.actions.setUser({
-              userId: parseInt(decoded.sub),
-              accessToken: accessToken,
-              refreshToken: refreshToken,
-            }),
-          );
+          myId = parseInt(decoded.sub);
+          myRefreshToken = refreshToken;
+          myAccessToken = accessToken;
 
-          EncryptedStorage.setItem(
+          await EncryptedStorage.setItem(
             'refreshToken',
             response.data.data.refreshToken,
           );
 
-          EncryptedStorage.setItem(
+          await EncryptedStorage.setItem(
             'accessToken',
             response.data.data.accessToken,
+          );
+        });
+
+      await customAxios
+        .get(`/api/member/{member-id}?member-id=${myId!}`, {
+          headers: {
+            Authorization: `Bearer ${myAccessToken!}`,
+          },
+        })
+        .then(response => {
+          const {nickname, email} = response.data.data;
+
+          dispatch(
+            userSlice.actions.setUser({
+              userId: myId,
+              nickname: nickname,
+              email: email,
+              accessToken: myAccessToken,
+              refreshToken: myRefreshToken,
+            }),
           );
         });
 

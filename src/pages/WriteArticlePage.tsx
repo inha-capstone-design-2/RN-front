@@ -31,7 +31,6 @@ function WriteArticlePage({navigation, route}: WriteArticlePageProps) {
   const [content, setContent] = useState('');
 
   const submitArticle = async () => {
-    console.log(userId);
     try {
       await customAxios
         .post(
