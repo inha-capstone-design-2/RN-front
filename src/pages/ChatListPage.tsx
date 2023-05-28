@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -9,66 +9,89 @@ import {
   FlatList,
   Animated,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {LoggedInParamList} from '../../AppInner';
 import socket from '../utils/useSocket';
-
-const data = [
-  {
-    id: 1,
-    name: 'SBS - 도깨비',
-    description: '16화 - 회차 이름',
-    onAir: true,
-    viewers: 12,
-  },
-  {
-    id: 2,
-    name: 'KBS - 모범 택시',
-    description: '14화 - 회차 이름',
-    onAir: true,
-    viewers: 43,
-  },
-  {
-    id: 3,
-    name: 'SPOTV',
-    description: '맨유 VS 아스날',
-    onAir: false,
-    viewers: 253,
-  },
-];
+import {chatAxios} from '../utils/customAxios';
+import {RootState} from '../store/reducer';
+import {useSelector} from 'react-redux';
+import EncryptedStorage from 'react-native-encrypted-storage';
 
 type ChatListProps = NativeStackScreenProps<LoggedInParamList, 'ChatList'>;
 
-type ChatList = {
-  id: number;
-  name: string;
-  description: string;
-  onAir: boolean;
+type ChatRoom = {
+  programId: number;
+  channelName: string;
+  programName: string;
+  episodeName: string;
   viewers: number;
 };
 
-type IChatList = {
-  item: ChatList;
+type IChatRoom = {
+  item: ChatRoom;
 };
 
 const ChatListPage = ({navigation}: ChatListProps) => {
-  const [chatRooms, setChatRooms] = useState<ChatList[]>(data);
+  const myId = useSelector((state: RootState) => state.user.userId);
+  const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
+  const [canEnter, setCanEnter] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(true);
 
-  const renderItem = ({item}: IChatList) => {
-    const {id, name, description, onAir, viewers} = item;
+  useEffect(() => {
+    const isForbidden = async () => {
+      const forbiddenTime = await EncryptedStorage.getItem('forbidden');
+
+      if (forbiddenTime) {
+        const canEnterTime = new Date(JSON.parse(forbiddenTime));
+
+        const currentTime = new Date(); // 현재 시간 객체 생성
+        currentTime.setMinutes(currentTime.getMinutes() - 10);
+
+        console.log(currentTime);
+        console.log(canEnterTime);
+
+        if (currentTime.getTime() < canEnterTime.getTime()) {
+          setCanEnter(false);
+        }
+      }
+    };
+    isForbidden();
+  }, []);
+
+  useEffect(() => {
+    const getChatRooms = async () => {
+      await chatAxios.get('/v1/room').then(response => {
+        setChatRooms(response.data.data);
+      });
+    };
+    getChatRooms();
+  }, []);
+
+  const renderItem = ({item}: IChatRoom) => {
+    const {programId, channelName, programName, episodeName, viewers} = item;
+    const onAir = true;
     return (
-      <Swipeable
-        key={item.id}
-        renderRightActions={() => renderRightActions(item)}>
+      <Swipeable>
         <TouchableOpacity
           style={styles.chatRoom}
-          onPress={() => toChatRoom(id, name, onAir)}>
+          onPress={() => {
+            if (canEnter) {
+              toChatRoom(programId, `${programName}-${episodeName}`, true);
+            } else {
+              Alert.alert(
+                '경고',
+                `욕설이나 비방하는 채팅을 5회이상 사용하여 일시적으로 채팅방 입장이 금지됩니다`,
+              );
+            }
+          }}>
           <View>
-            <Text style={styles.chatRoomName}>{name}</Text>
-            <Text style={styles.chatRoomDescription}>{description}</Text>
+            <Text style={styles.chatRoomName}>
+              {channelName} - {programName}
+            </Text>
+            <Text style={styles.chatRoomDescription}>{episodeName}</Text>
           </View>
           {onAir ? (
             <View style={styles.itemContainer}>
@@ -103,33 +126,19 @@ const ChatListPage = ({navigation}: ChatListProps) => {
     setIsRefreshing(true);
   };
 
-  const renderRightActions = (item: ChatList) => {
-    const handleDelete = () => {
-      const updatedChatRooms = chatRooms.filter(
-        chatRoom => chatRoom.id !== item.id,
-      );
-      setChatRooms(updatedChatRooms);
-    };
-
-    return (
-      <Animated.View style={styles.swipeable}>
-        <TouchableOpacity onPress={handleDelete}>
-          <Text style={styles.swipeableText}>Exit</Text>
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  };
-
-  const toChatRoom = (roomId: number, roomName: string, onAir: boolean) => {
-    socket.emit('joinRoom', roomId, 1);
-    navigation.navigate('Chat', {roomId, roomName, onAir});
+  const toChatRoom = (
+    programId: number,
+    programName: string,
+    onAir: boolean,
+  ) => {
+    socket.emit('joinRoom', programId, myId);
+    navigation.navigate('Chat', {programId, programName, onAir});
   };
 
   return (
     <View style={styles.container}>
       <FlatList
         data={chatRooms}
-        keyExtractor={item => item.name}
         renderItem={renderItem}
         contentContainerStyle={styles.flatListContent}
         showsVerticalScrollIndicator={false}
