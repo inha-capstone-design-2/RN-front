@@ -16,7 +16,7 @@ import axios, {AxiosError} from 'axios';
 import {customAxios} from '../utils/customAxios';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
-import {faStar} from '@fortawesome/free-solid-svg-icons';
+import {faStar, faArrowLeft} from '@fortawesome/free-solid-svg-icons';
 import {useNavigation} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
 import {RootState} from '../store/reducer';
@@ -152,6 +152,17 @@ const ProgramList = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <TouchableOpacity style={styles.goBack}onPress={() => navigation.goBack()}>
+            <FontAwesomeIcon
+              icon={faArrowLeft}
+              size={30}
+            />
+          </TouchableOpacity>
+          <Text style={styles.boardTitle}>즐겨찾기</Text>
+        </View>
+      </View>
       <View style={styles.main}>
         <View>
           {bookmarkNum == 0 ? 
@@ -177,7 +188,32 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     backgroundColor: 'white',
   },
-
+  header: {
+    width: windowWidth,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 3.84,
+    elevation: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  goBack: {
+    paddingLeft:16,
+  },
+  boardTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    padding: 16,
+    //width: windowWidth - 100,
+    textAlignVertical: 'center',
+    color: 'black',
+  },
   main: {
     flex: 13,
   },
@@ -186,8 +222,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding:15,
     width: windowWidth,
-    borderWidth:1,
-    borderColor: '#EFF0F6',
+    borderBottomWidth:1,
+    borderBottomColor: '#EFF0F6',
     justifyContent: 'space-between',
   },
 

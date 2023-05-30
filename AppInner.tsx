@@ -86,7 +86,7 @@ function Tabs() {
         name="Favorites"
         component={FavoritesPage}
         options={
-          {tabBarLabel: '즐겨찾기',
+          {headerShown: false,
             tabBarIcon: ({ focused }) => (
               <FontAwesomeIcon
               style={focused? {color: '#4A3AFF'} : {color: 'gray'}}
