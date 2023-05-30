@@ -25,6 +25,7 @@ import jwt_decode from 'jwt-decode';
 import {customAxios} from './src/utils/customAxios';
 import {useAppDispatch} from './src/store';
 
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 export type LoggedInParamList = {
@@ -38,6 +39,7 @@ export type LoggedInParamList = {
   };
   ProgramDetail: {
     programId: number;
+    isBookmarked: boolean;
   };
   Articles: {
     programId: number;
@@ -84,7 +86,7 @@ function Tabs() {
         name="Favorites"
         component={FavoritesPage}
         options={
-          {headerShown: false,
+          {tabBarLabel: '즐겨찾기',
             tabBarIcon: ({ focused }) => (
               <FontAwesomeIcon
               style={focused? {color: '#4A3AFF'} : {color: 'gray'}}
