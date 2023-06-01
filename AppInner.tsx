@@ -22,6 +22,7 @@ import socket from './src/utils/useSocket';
 import jwt_decode from 'jwt-decode';
 import {customAxios} from './src/utils/customAxios';
 import {useAppDispatch} from './src/store';
+import SplashScreen from 'react-native-splash-screen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -129,11 +130,16 @@ function AppInner() {
               }),
             );
           });
+
+        SplashScreen.hide();
+        return;
       }
+
+      SplashScreen.hide();
     };
 
     getAccessToken();
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     axios.interceptors.response.use(
