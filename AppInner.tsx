@@ -47,9 +47,11 @@ export type LoggedInParamList = {
   };
   Article: {
     articleId: number;
+    boardTitle: string;
   };
   WriteArticle: {
-    programId: number;
+    boardId: number;
+    boardTitle: string;
   };
   Setting: undefined;
   AlarmSetting: undefined;
