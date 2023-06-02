@@ -24,16 +24,14 @@ const program = {
   schedule: '일, 저녁 9시',
 };
 
-let accessToken;
-
 function ProgramDetailPage({navigation, route}: ProgramDetailPageProps) {
   const {programId, isBookmarked} = route.params;
   const [bookmarked, setBookmarked] = useState(isBookmarked);
   const [bookmarkId, setBookmarkId] = useState(-1);
   const myId = useSelector((state: RootState) => state.user.userId);
+  const accessToken = useSelector((state: RootState) => state.user.accessToken);
 
   const init = async () => {
-    accessToken = await EncryptedStorage.getItem('accessToken');
     try {
       await customAxios
         .get(

@@ -24,7 +24,6 @@ import { useIsFocused } from '@react-navigation/native'
 let channelList = [];
 let programList = [];
 let bookmarkList = [];
-let accessToken;
 
 const ProgramList = () => {
   const navigation = useNavigation();
@@ -36,10 +35,10 @@ const ProgramList = () => {
   const [noResult, setNoResult] = useState(false);
   const [bookmarkNum, setBookmarkNum] = useState(bookmarkList.length);
   const myId = useSelector((state: RootState) => state.user.userId);
+  const accessToken = useSelector((state: RootState) => state.user.accessToken);
   const isFocused = useIsFocused();
 
   const initList = async () => {
-    accessToken = await EncryptedStorage.getItem('accessToken');
     const cl = await EncryptedStorage.getItem('channelList');
     channelList = JSON.parse(cl);
     bookmarkSet();

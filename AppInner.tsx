@@ -26,6 +26,7 @@ import {customAxios} from './src/utils/customAxios';
 import {useAppDispatch} from './src/store';
 import SplashScreen from 'react-native-splash-screen';
 
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 export type LoggedInParamList = {
@@ -39,6 +40,7 @@ export type LoggedInParamList = {
   };
   ProgramDetail: {
     programId: number;
+    isBookmarked: boolean;
   };
   Articles: {
     programId: number;
