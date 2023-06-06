@@ -1,5 +1,12 @@
 import React, {useState, useEffect} from 'react';
-import {View, Image, Text, TouchableOpacity, StyleSheet, Alert,} from 'react-native';
+import {
+  View,
+  Image,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {LoggedInParamList} from '../../AppInner';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -34,15 +41,12 @@ function ProgramDetailPage({navigation, route}: ProgramDetailPageProps) {
   const init = async () => {
     try {
       await customAxios
-        .get(
-          `/api/episode/{program-id}?program-id=1`,
-          {
-            headers: {Authorization: `Bearer ${accessToken}`},
-          },
-        )
+        .get(`/api/episode/{program-id}?program-id=1`, {
+          headers: {Authorization: `Bearer ${accessToken}`},
+        })
         .then(response => {
           const el = JSON.parse(JSON.stringify(response.data.data));
-          const lastEpisoid = el[el.length-1];
+          const lastEpisoid = el[el.length - 1];
           program.name = lastEpisoid.program.programTitle;
           program.schedule = lastEpisoid.startTime;
         });
@@ -51,53 +55,51 @@ function ProgramDetailPage({navigation, route}: ProgramDetailPageProps) {
       console.log(errorResponse?.data.error.code);
       Alert.alert('알림', `${errorResponse?.data.error.code}`);
     }
-  }
+  };
 
   useEffect(() => {
     init();
     bookmarkSet();
     console.log(program.schedule);
-  },[]);
+  }, []);
 
   useEffect(() => {
     bookmarkSet();
-  },[bookmarked]);
+  }, [bookmarked]);
 
   const bookmarkSet = async () => {
-    if(bookmarked){
+    if (bookmarked) {
       let bookmarkList;
       try {
         await customAxios
-          .get(
-            `/api/bookmark/`,
-            {
-              headers: {Authorization: `Bearer ${accessToken}`},
-            },
-          )
+          .get(`/api/bookmark/`, {
+            headers: {Authorization: `Bearer ${accessToken}`},
+          })
           .then(response => {
             const bl = JSON.stringify(response.data.data);
-            bookmarkList=JSON.parse(bl);
+            bookmarkList = JSON.parse(bl);
           });
       } catch (error) {
         const errorResponse = (error as AxiosError).response as any;
         console.log(errorResponse?.data.error.code);
         Alert.alert('알림', `${errorResponse?.data.error.code}`);
-        console.log("bookmarkSetfail");
+        console.log('bookmarkSetfail');
       }
-      setBookmarkId(bookmarkList.filter((item) => item.programId==programId)[0].id);
-    }
-    else setBookmarkId(-1);
-  }
+      setBookmarkId(
+        bookmarkList.filter(item => item.programId == programId)[0].id,
+      );
+    } else setBookmarkId(-1);
+  };
 
   const handleBookmarkPress = async () => {
-    if(!bookmarked){
+    if (!bookmarked) {
       try {
         await customAxios
           .post(
             `/api/bookmark/`,
             {
               memberId: myId,
-              programId: programId
+              programId: programId,
             },
             {
               headers: {Authorization: `Bearer ${accessToken}`},
@@ -111,16 +113,12 @@ function ProgramDetailPage({navigation, route}: ProgramDetailPageProps) {
         console.log(errorResponse?.data.error.code);
         Alert.alert('알림', `${errorResponse?.data.error.code}`);
       }
-    }
-    else{
+    } else {
       try {
         await customAxios
-          .delete(
-            `/api/bookmark/{bookmark-id}?bookmark-id=${bookmarkId}`,
-            {
-              headers: {Authorization: `Bearer ${accessToken}`},
-            },
-          )
+          .delete(`/api/bookmark/{bookmark-id}?bookmark-id=${bookmarkId}`, {
+            headers: {Authorization: `Bearer ${accessToken}`},
+          })
           .then(response => {
             console.log(response.data);
           });
@@ -134,7 +132,7 @@ function ProgramDetailPage({navigation, route}: ProgramDetailPageProps) {
   };
 
   const toArticles = () => {
-    navigation.navigate('Articles', {programId});
+    navigation.navigate('Articles', {programId: 1});
   };
 
   return (
@@ -168,7 +166,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   image: {
     width: '100%',
