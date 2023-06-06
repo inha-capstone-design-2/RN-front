@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
 
   },
   write: {
-    backgroundColor: '#4A3AFF',
+    backgroundColor: '#4E5BF6',
     borderRadius: 30,
     margin: 15,
     padding: 1,

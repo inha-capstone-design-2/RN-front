@@ -21,57 +21,96 @@ import {useSelector} from 'react-redux';
 import {RootState} from '../store/reducer';
 import { useIsFocused } from '@react-navigation/native'
 
-let channelList = [];
-let programList = [];
-let bookmarkList = [];
+type Channel = {
+  channelId: number;
+  channelName: string;
+  createdTime: string;
+  createdBy: number;
+  updatedTime: string;
+  updatedBy: number;
+};
+
+type Program = {
+  programId: number;
+  programTitle: string;
+  channelId: number;
+};
+
+type Bookmark = {
+  id: number;
+  programId: number;
+  createdTime: string;
+  updatedTime: string;
+};
 
 const ProgramList = () => {
   const navigation = useNavigation();
+  const [channelList, setChannelList] = useState<Channel[]>([]);
+  const [programList, setProgramList] = useState<Program[]>([]);
+  const [bookmarkList, setBookmarkList] = useState<Bookmark[]>([]);
   const [currentChannel, setCurrentChannel] = useState(0);
   const [searchTarget, setSearchTarget] = useState('channel');
   const [searchText, setSearchText] = useState("");
   const [filteredChannel, setFilteredChannel] = useState(channelList);
   const [filteredProgram, setFilteredProgram] = useState(programList);
   const [noResult, setNoResult] = useState(false);
-  const [bookmarkNum, setBookmarkNum] = useState(bookmarkList.length);
   const myId = useSelector((state: RootState) => state.user.userId);
   const accessToken = useSelector((state: RootState) => state.user.accessToken);
   const isFocused = useIsFocused();
 
-  const initList = async () => {
-    const cl = await EncryptedStorage.getItem('channelList');
-    channelList = JSON.parse(cl);
-    bookmarkSet();
-    setFilteredChannel(channelList);
-    programSet(channelList[0]);
-  }
-
   useEffect(() => {
+    const initList = async () => {
+      await channelSet();
+      await bookmarkSet();
+    }
     initList();
-  },[]);
+  },[isFocused]);
 
   useEffect(() => {
-    bookmarkSet();
-  },[isFocused]);
+    const initList = async () => {
+      await programSet(channelList[0].channelId);
+    }
+    initList();
+  },[channelList]);
 
   const toProgramDetail = (programId: number, item) => {
     const isBookmarked = (returnBookmark(item).length != 0);
     navigation.navigate('ProgramDetail', {programId, isBookmarked});
   };
 
-  const programSet = async (item) => {
-    setCurrentChannel(item.channelId);
+  const channelSet = async() => {
     try {
       await customAxios
         .get(
-          `/api/program/{channel-id}?channel-id=${item.channelId}`,
+          `/api/channel/`,
           {
             headers: {Authorization: `Bearer ${accessToken}`},
           },
         )
         .then(response => {
-          const pl = JSON.stringify(response.data.data);
-          setFilteredProgram(JSON.parse(pl));
+          setChannelList(response.data.data);
+          setFilteredChannel(channelList);
+        });
+    } catch (error) {
+      const errorResponse = (error as AxiosError).response as any;
+      console.log(errorResponse?.data.error.code);
+      Alert.alert('알림', `${errorResponse?.data.error.code}`);
+    }
+  }
+
+  const programSet = async (channelId:number) => {
+    setCurrentChannel(channelId);
+    try {
+      await customAxios
+        .get(
+          `/api/program/{channel-id}?channel-id=${channelId}`,
+          {
+            headers: {Authorization: `Bearer ${accessToken}`},
+          },
+        )
+        .then(response => {
+          setProgramList(response.data.data);
+          setFilteredProgram(programList);
         });
     } catch (error) {
       const errorResponse = (error as AxiosError).response as any;
@@ -90,22 +129,20 @@ const ProgramList = () => {
           },
         )
         .then(response => {
-          const bl = JSON.stringify(response.data.data);
-          bookmarkList=JSON.parse(bl);
+          setBookmarkList(response.data.data);
         });
     } catch (error) {
       const errorResponse = (error as AxiosError).response as any;
       console.log(errorResponse?.data.error.code);
       Alert.alert('알림', `${errorResponse?.data.error.code}`);
     }
-    setBookmarkNum(bookmarkList.length);
   }
 
-  const returnBookmark = (item) => {
+  const returnBookmark = (item:Program) => {
     return bookmarkList.filter(bookmark => bookmark.programId==item.programId);
   }
 
-  const handleBookmarkPress = async (item) => {
+  const handleBookmarkPress = async (item:Program) => {
     const bookmark = returnBookmark(item);
     console.log(item.programId);
     if(bookmark.length == 0){
@@ -151,9 +188,9 @@ const ProgramList = () => {
     bookmarkSet();
   };
 
-  const Channel = ({ item, onPress, backgroundColor, textColor}) => (
+  const Channel = ({ item, onPress, backgroundColor}) => (
     <TouchableOpacity onPress={onPress} style={[styles.channelList, {backgroundColor}]}>
-      <Text style={[styles.channelName, {color: textColor}]}>{item.channelName}</Text>
+      <Text style={[styles.channelName]}>{item.channelName}</Text>
     </TouchableOpacity>
   );
 
@@ -162,7 +199,6 @@ const ProgramList = () => {
       <Text style={styles.programTitle}>{item.programTitle}</Text>
       <TouchableOpacity style={styles.bookmark} onPress={() => handleBookmarkPress(item)}>
           <FontAwesomeIcon
-            id={item.programid}
             icon={faStar}
             size={26}
             style={returnBookmark(item).length != 0 ? styles.bookmarkStar : styles.unBookmarkStar}
@@ -172,20 +208,20 @@ const ProgramList = () => {
   )
 
   const renderChannel = ({ item }) => {
-    const backgroundColor = item.channelId === currentChannel ? '#4A3AFF' : '#EFF0F6';
-    const color = item.channelId === currentChannel ? 'white' : 'black';
+    const backgroundColor = item.channelId === currentChannel ? '#4E5BF6' : '#A6A6A6';
+    //const color = item.channelId === currentChannel ? 'white' : 'black';
     return (
       <Channel 
         item={item}
-        onPress={() => {programSet(item)}}
+        onPress={() => {programSet(item.channelId)}}
         backgroundColor={backgroundColor}
-        textColor={color}
+        //textColor={color}
       />
     )
   };
 
   const renderProgram = ({ item }) => (
-    <Program item={item} onPress={() => toProgramDetail(item.programId, item)} bookmarkOnPress={() => addBookmark(item)} />
+    <Program item={item} onPress={() => toProgramDetail(item.programId, item)} />
   );
 
   // useEffect(() => {
@@ -256,10 +292,10 @@ const ProgramList = () => {
       <View style={styles.main}>
         <View style={styles.channel}>
           <FlatList
-            data={filteredChannel}
+            data={channelList}
             horizontal = {true}
             renderItem={renderChannel}
-            keyExtractor={item => item.channelId}
+            keyExtractor={item => String(item.channelId)}
             extraData={currentChannel}
             showsHorizontalScrollIndicator={false}
           />
@@ -271,9 +307,9 @@ const ProgramList = () => {
             <Text>검색 결과가 없습니다</Text>
           ):(
             <FlatList
-              data={filteredProgram}
+              data={programList}
               renderItem={renderProgram}
-              keyExtractor={item => item.id}
+              keyExtractor={item => String(item.programId)}
               extraData={bookmarkList}
             />
           )
@@ -311,14 +347,13 @@ const styles = StyleSheet.create({
     width: 370,
     height: 55,
     borderWidth: 1,
-    borderColor: "#EFF0F6",
+    borderColor: "#A6A6A6",
     borderRadius: 46,
     fontSize: 16,
     color: "#6F6C90",
     paddingLeft: 18,
     marginHorizontal:10,
     marginBottom: 10,
-    
   },
 
   channel: {
@@ -332,7 +367,6 @@ const styles = StyleSheet.create({
   channelList: {
     width: 70,
     height: 40,
-    //backgroundColor: '#EFF0F6',
     borderRadius: 30,
     margin: 5,
     padding: 1,
@@ -342,14 +376,15 @@ const styles = StyleSheet.create({
   channelName: {
     textAlign: 'center',
     fontSize: 18,
-    //color: "#170F49",
+    color: '#fff',
   },
 
   programList: {
     flexDirection: 'row',
+    marginHorizontal:10,
     padding:15,
-    borderBottomWidth:1,
-    borderBottomColor: '#EFF0F6',
+    borderBottomWidth:0.5,
+    borderBottomColor: '#A6A6A6',
     justifyContent: 'space-between',
   },
 

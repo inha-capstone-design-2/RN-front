@@ -1,14 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {
-  View,
-  Text,
-  Image,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-  Alert,
-} from 'react-native';
+import {View, Text, Image, ScrollView, StyleSheet, TouchableOpacity, Dimensions, Alert} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {LoggedInParamList} from '../../AppInner';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -18,65 +9,72 @@ import axios, {AxiosError} from 'axios';
 import {customAxios} from '../utils/customAxios';
 import {useSelector} from 'react-redux';
 import {RootState} from '../store/reducer';
-import {useIsFocused} from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native'
 
 type ArticlePageProps = NativeStackScreenProps<LoggedInParamList, 'Article'>;
 
 const windowWidth = Dimensions.get('window').width;
-let article = {};
+
+type Article = {
+  id: string;
+  title: string;
+  content: string;
+  boardId: number;
+  createdTime: string;
+  createdBy: number;
+  updatedBy: number;
+};
+
+let article ={};
 
 const ArticlePage = ({navigation, route}: ArticlePageProps) => {
   const {articleId, boardTitle} = route.params;
   const accessToken = useSelector((state: RootState) => state.user.accessToken);
   const isFocused = useIsFocused();
-
-  const [articleData, setArticleData] = useState({
-    title: '너무 재미있지 않나요?',
-    author: 'asdfas123',
-    date: '2023-04-23',
-    content: '사랑의 이해 너무 재밌는 것 같아요~~',
-  });
+  const [article, setArticle] = useState<Article>();
 
   const getArticle = async () => {
     try {
       await customAxios
-        .get(`/api/bbs/article/{article-id}?article-id=${articleId}`, {
-          headers: {Authorization: `Bearer ${accessToken}`},
-        })
+        .get(`/api/bbs/article/{article-id}?article-id=${articleId}`, 
+          {
+            headers: {Authorization: `Bearer ${accessToken}`},
+          }
+        )
         .then(response => {
-          article = JSON.parse(JSON.stringify(response.data.data));
-          console.log(article);
+          setArticle(response.data.data);
         });
     } catch (error) {
       const errorResponse = (error as AxiosError).response as any;
       console.log(errorResponse?.data.error.code);
       Alert.alert('알림', `${errorResponse?.data.error.code}`);
     }
-  };
+  }
 
   useEffect(() => {
     getArticle();
-  }, [articleId, isFocused]);
+  }, [articleId,isFocused]);
 
-  const formatDateTime = dateTimeStr => {
+  const formatDateTime = (dateTimeStr) => {
     const date = new Date(dateTimeStr);
     const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    
     return `${year}.${month}.${day} ${hours}:${minutes}`;
-  };
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <TouchableOpacity
-            style={styles.goBack}
-            onPress={() => navigation.goBack()}>
-            <FontAwesomeIcon icon={faArrowLeft} size={30} />
+          <TouchableOpacity style={styles.goBack}onPress={() => navigation.goBack()}>
+            <FontAwesomeIcon
+              icon={faArrowLeft}
+              size={30}
+            />
           </TouchableOpacity>
           <Text style={styles.boardTitle}>{boardTitle}</Text>
         </View>
@@ -87,15 +85,13 @@ const ArticlePage = ({navigation, route}: ArticlePageProps) => {
             source={{uri: 'https://picsum.photos/40'}}
             style={styles.authorAvatar}
           />
-          <Text style={styles.authorName}>{article.createdBy}</Text>
-          <Text style={styles.articleDate}>
-            {formatDateTime(article.createdTime)}
-          </Text>
+          <Text style={styles.authorName}>{article?.createdBy}</Text>
+          <Text style={styles.articleDate}>{formatDateTime(article?.createdTime)}</Text>
         </View>
-        <Text style={styles.articleTitle}>{article.title}</Text>
+        <Text style={styles.articleTitle}>{article?.title}</Text>
 
         <ScrollView>
-          <Text style={styles.articleContent}>{article.content}</Text>
+          <Text style={styles.articleContent}>{article?.content}</Text>
           {/* <View style={styles.commentInfoContainer}>
             <View style={styles.commentIconContainer}>
               <Icon name="comment" size={20} color="gray" />
@@ -131,7 +127,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   goBack: {
-    paddingLeft: 16,
+    paddingLeft:16,
   },
   boardTitle: {
     fontSize: 24,
