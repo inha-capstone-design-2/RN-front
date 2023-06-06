@@ -1,5 +1,13 @@
 import React, {useState, useEffect} from 'react';
-import {View, StyleSheet, FlatList, ScrollView, Alert, Dimensions, TouchableOpacity} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  ScrollView,
+  Alert,
+  Dimensions,
+  TouchableOpacity,
+} from 'react-native';
 import {Text} from 'react-native-elements';
 import {LoggedInParamList} from '../../AppInner';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -7,169 +15,141 @@ import axios, {AxiosError} from 'axios';
 import {customAxios} from '../utils/customAxios';
 import {useSelector} from 'react-redux';
 import {RootState} from '../store/reducer';
-import { useIsFocused } from '@react-navigation/native'
+import {useIsFocused} from '@react-navigation/native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faArrowLeft} from '@fortawesome/free-solid-svg-icons';
 
-
 type ArticlesPageProps = NativeStackScreenProps<LoggedInParamList, 'Articles'>;
 
-type Article = {
+type Board = {
   id: number;
-  title: string;
-  author: string;
-  date: string;
-  comments: number;
+  name: string;
+  description: string;
 };
 
-let articles = [];
-let board = {};
+type Article = {
+  boardId: number;
+  content: string;
+  id: string;
+  title: string;
+};
+
 const windowWidth = Dimensions.get('window').width;
 
 const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
   const accessToken = useSelector((state: RootState) => state.user.accessToken);
-  const myId = useSelector((state: RootState) => state.user.userId);
-  const myNickname = useSelector((state: RootState) => state.user.nickname);
   const {programId} = route.params;
-  const isFocused = useIsFocused();
-  
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [board, setBoard] = useState<Board>();
 
   const toArticle = (articleId: number) => {
-    const boardTitle = board.name;
+    const boardTitle = board?.name as string;
     navigation.navigate('Article', {articleId, boardTitle});
   };
 
-  const writeArticle = (programId: number) => {
-    const boardId = board.id;
-    const boardTitle = board.name;
+  const writeArticle = () => {
+    const boardId = board?.id as number;
+    const boardTitle = board?.name as string;
     navigation.navigate('WriteArticle', {boardId, boardTitle});
   };
 
-  const getBoard =async () => {
-    try {
-      await customAxios
-        .get(`/api/bbs/board/`, 
-          {
+  useEffect(() => {
+    const getBoard = async () => {
+      try {
+        await customAxios
+          .get(`/api/bbs/board/`, {
             headers: {Authorization: `Bearer ${accessToken}`},
-          }
-        )
-        .then(response => {
-          board = JSON.parse(JSON.stringify(response.data.data)).filter((item)=>item.programId==programId)[0];
-          console.log("board set");
-        });
-    } catch (error) {
-      const errorResponse = (error as AxiosError).response as any;
-      console.log(errorResponse?.data.error.code);
-      Alert.alert('알림', `${errorResponse?.data.error.code}`);
-    }
-  }
-
-  const getArticles = async () => {
-    try {
-      await customAxios
-        .get(`/api/bbs/article/{board-id}?board-id=${board.id}`, 
-          {
-            headers: {Authorization: `Bearer ${accessToken}`},
-          }
-        )
-        .then(response => {
-          articles = JSON.parse(JSON.stringify(response.data.data));
-          console.log(articles);
-          console.log(articles.length);
-        });
-    } catch (error) {
-      const errorResponse = (error as AxiosError).response as any;
-      console.log(errorResponse?.data.error.code);
-      Alert.alert('알림', `${errorResponse?.data.error.code}`);
-    }
-  }
+          })
+          .then(response => {
+            setBoard(response.data.data[0]);
+          });
+      } catch (error) {
+        const errorResponse = (error as AxiosError).response as any;
+        console.log(errorResponse?.data.error.code);
+        Alert.alert('알림', `${errorResponse?.data.error.code}`);
+      }
+    };
+    getBoard();
+  }, []);
 
   useEffect(() => {
-    getBoard();
+    const getArticles = async () => {
+      try {
+        await customAxios
+          .get(`/api/bbs/article/{board-id}?board-id=${programId}`, {
+            headers: {Authorization: `Bearer ${accessToken}`},
+          })
+          .then(response => {
+            console.log(response.data.data);
+            setArticles(response.data.data);
+          });
+      } catch (error) {
+        const errorResponse = (error as AxiosError).response as any;
+        console.log(errorResponse?.data.error.code);
+        Alert.alert('알림', `${errorResponse?.data.error.code}`);
+      }
+    };
     getArticles();
-  }, [programId,isFocused]);
+  }, []);
 
-  const formatDateTime = (dateTimeStr) => {
+  const formatDateTime = (dateTimeStr: string) => {
     const date = new Date(dateTimeStr);
     const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const day = date.getDate().toString().padStart(2, "0");
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+
     return `${year}.${month}.${day} ${hours}:${minutes}`;
-  }
+  };
 
-  const getNickname = async (memberId) => {
-    let nickname: string;
-    try {
-      await customAxios
-        .get(`/api/member/{member-id}?member-id=${memberId}`, 
-          {
-            headers: {Authorization: `Bearer ${accessToken}`},
-          }
-        )
-        .then(response => {
-          nickname = JSON.parse(JSON.stringify(response.data.data)).nickname;
-        });
-    } catch (error) {
-      const errorResponse = (error as AxiosError).response as any;
-      console.log(errorResponse?.data.error.code);
-      Alert.alert('알림', `${errorResponse?.data.error.code}`);
-    }
-  }
-
-  const Article = ({ item, onPress}) => (
+  const Article = ({item, onPress}) => (
     <TouchableOpacity onPress={onPress} style={styles.articleList}>
       <Text style={styles.articleTitle}>{item.title}</Text>
       <Text style={styles.articleMeta}>
-          {item.createdBy} | {formatDateTime(item.createdTime)}
+        {item.createdBy} | {formatDateTime(item.createdTime)}
       </Text>
     </TouchableOpacity>
   );
 
-  const onPressBack = () => {
-    navigation.goBack();
-  }
-
-  const renderArticles = ({ item }) => {
+  const renderArticles = ({item}) => {
     return (
-      <Article 
+      <Article
         item={item}
-        onPress={() => {toArticle(item.id)}}
+        onPress={() => {
+          toArticle(item.id);
+        }}
       />
-    )
+    );
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <TouchableOpacity style={styles.goBack}onPress={() => navigation.goBack()}>
-            <FontAwesomeIcon
-              icon={faArrowLeft}
-              size={30}
-            />
+          <TouchableOpacity
+            style={styles.goBack}
+            onPress={() => navigation.goBack()}>
+            <FontAwesomeIcon icon={faArrowLeft} size={30} />
           </TouchableOpacity>
-          <Text style={styles.boardTitle}>{board.name}</Text>
+          <Text style={styles.boardTitle}>{board?.name}</Text>
         </View>
-        <TouchableOpacity onPress={() => writeArticle(board.id)}>
+        <TouchableOpacity onPress={() => writeArticle}>
           <Text style={styles.write}>글 쓰기</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.article}>
-        {
-          articles.length == 0 ?
+        {articles.length == 0 ? (
           <Text style={{textAlign: 'center'}}>게시글이 없습니다.</Text>
-          :
+        ) : (
           <FlatList
-          data={articles}
-          renderItem={renderArticles}
-          keyExtractor={item => item.id}
-          //extraData={}
-        />
-        }
-        </View>
+            data={articles}
+            renderItem={renderArticles}
+            keyExtractor={item => item.id}
+            //extraData={}
+          />
+        )}
+      </View>
     </View>
   );
 };
@@ -195,7 +175,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   goBack: {
-    paddingLeft:16,
+    paddingLeft: 16,
   },
   boardTitle: {
     fontSize: 24,
@@ -203,7 +183,6 @@ const styles = StyleSheet.create({
     padding: 16,
     //width: windowWidth - 100,
     textAlignVertical: 'center',
-
   },
   write: {
     backgroundColor: '#4A3AFF',

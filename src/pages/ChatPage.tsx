@@ -60,7 +60,6 @@ function ChatPage({navigation, route}: ChatPageProps) {
           scrollToBottom();
         });
       };
-
       getMessages();
       scrollToBottom();
     } catch (error) {
@@ -185,13 +184,11 @@ function ChatPage({navigation, route}: ChatPageProps) {
 
           setModalVisible(false);
         });
-      setModalVisible(false);
     } catch (error) {
+      setModalVisible(false);
       console.log(error);
     }
   };
-
-  const reportUser = useCallback(() => {}, []);
 
   // 신고하기 로직
   const timeoutRef = useRef<number | null>(null);
@@ -220,7 +217,9 @@ function ChatPage({navigation, route}: ChatPageProps) {
                     headers: {Authorization: `Bearer ${accessToken}`},
                   },
                 )
-                .then(response => {});
+                .then(response => {
+                  Alert.alert('신고하기', `${userNickname}님을 신고하였습니다`);
+                });
             },
           },
         ]);
@@ -261,6 +260,10 @@ function ChatPage({navigation, route}: ChatPageProps) {
     };
   }, []);
 
+  const createS3 = useCallback(() => {
+    console.log('ptree');
+  }, []);
+
   return (
     <KeyboardAvoidingView style={styles.container}>
       <View style={styles.headerContainer}>
@@ -269,6 +272,10 @@ function ChatPage({navigation, route}: ChatPageProps) {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{programName}</Text>
       </View>
+
+      <TouchableOpacity style={styles.s3Button} onPress={createS3}>
+        <Text style={styles.s3ButtonText}>이모지 생성</Text>
+      </TouchableOpacity>
 
       {/* chat */}
       <ScrollView
@@ -385,6 +392,22 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
+    fontWeight: '600',
+  },
+
+  // 커스텀 이모지 버튼
+  s3Button: {
+    backgroundColor: '#eee',
+    borderRadius: 10,
+    padding: 10,
+    position: 'absolute',
+    right: 15,
+    top: 60,
+    zIndex: 999,
+  },
+
+  s3ButtonText: {
+    fontSize: 15,
     fontWeight: '600',
   },
 
