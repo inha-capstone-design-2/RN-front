@@ -52,11 +52,7 @@ const ProgramListPage = () => {
           buttonStyle={
             showProgramBar ? styles.activeButton : styles.inactiveButton
           }
-          titleStyle={
-            showProgramBar
-              ? styles.activeButtonTitle
-              : styles.inactiveButtonTitle
-          }
+          titleStyle={styles.ButtonTitle}
           containerStyle={styles.button}
         />
         <Button
@@ -65,11 +61,7 @@ const ProgramListPage = () => {
           buttonStyle={
             !showProgramBar ? styles.activeButton : styles.inactiveButton
           }
-          titleStyle={
-            !showProgramBar
-              ? styles.activeButtonTitle
-              : styles.inactiveButtonTitle
-          }
+          titleStyle={styles.ButtonTitle}
           containerStyle={styles.button}
         />
       </View>
@@ -83,6 +75,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
+    backgroundColor: '#fff'
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -96,22 +89,19 @@ const styles = StyleSheet.create({
     width: '50%',
   },
   activeButton: {
-    backgroundColor: '#4A3AFF',
-    height: '100%',
-    borderBottomWidth:1,
-    borderBottomColor: '#EFF0F6',
+    backgroundColor: '#4E5BF6',
+    height: '90%',
+    borderRadius: 45,
+    marginHorizontal:'4%',
   },
   inactiveButton: {
-    backgroundColor: 'white',
-    height: '100%',
-    borderBottomWidth:1,
-    borderBottomColor: '#EFF0F6',
+    backgroundColor: '#A6A6A6',
+    height: '90%',
+    borderRadius: 45,
+    marginHorizontal:'4%',
   },
-  activeButtonTitle: {
+  ButtonTitle: {
     color: 'white',
-  },
-  inactiveButtonTitle: {
-    color: 'black',
   },
 });
 

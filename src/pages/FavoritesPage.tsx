@@ -22,6 +22,28 @@ import {useSelector} from 'react-redux';
 import {RootState} from '../store/reducer';
 import { useIsFocused } from '@react-navigation/native'
 
+type Channel = {
+  channelId: number;
+  channelName: string;
+  createdTime: string;
+  createdBy: number;
+  updatedTime: string;
+  updatedBy: number;
+};
+
+type Program = {
+  programId: number;
+  programTitle: string;
+  channelId: number;
+};
+
+type Bookmark = {
+  id: number;
+  programId: number;
+  createdTime: string;
+  updatedTime: string;
+};
+
 let channelList = [];
 let programList = [];
 let bookmarkList = [];
@@ -29,31 +51,56 @@ const windowWidth = Dimensions.get('window').width;
 
 const ProgramList = () => {
   const navigation = useNavigation();
-  const [bookmarkNum, setBookmarkNum] = useState(bookmarkList.length);
+  const [channelList, setChannelList] = useState<Channel[]>([]);
+  const [programList, setProgramList] = useState<Program[]>([]);
+  const [bookmarkList, setBookmarkList] = useState<Bookmark[]>([]);
+  const [bookmarkedProgramList, setBookmarkedProgramList] = useState<Program[]>([]);
   const myId = useSelector((state: RootState) => state.user.userId);
   const accessToken = useSelector((state: RootState) => state.user.accessToken);
   const isFocused = useIsFocused();
 
   const initList = async () => {
-    const cl = await EncryptedStorage.getItem('channelList');
-    channelList = JSON.parse(cl);
+    channelSet();
     bookmarkSet();
     programSet();
   }
 
   useEffect(() => {
     initList();
-  },[]);
+  },[isFocused]);
 
   useEffect(() => {
-    bookmarkSet();
-    programSet();
-  },[isFocused]);
+    setBookmarkedProgramList(programList.filter((program) => {
+      for(let i = 0;i<bookmarkList.length;i++) {
+        if(program.programId==bookmarkList[i].programId) return true;
+      }
+      return false;
+    }));
+  },[bookmarkList, programList]);
 
   const toProgramDetail = (programId: number, item) => {
     const isBookmarked = true;
     navigation.navigate('ProgramDetail', {programId, isBookmarked});
   };
+
+  const channelSet = async() => {
+    try {
+      await customAxios
+        .get(
+          `/api/channel/`,
+          {
+            headers: {Authorization: `Bearer ${accessToken}`},
+          },
+        )
+        .then(response => {
+          setChannelList(response.data.data);
+        });
+    } catch (error) {
+      const errorResponse = (error as AxiosError).response as any;
+      console.log(errorResponse?.data.error.code);
+      Alert.alert('알림', `${errorResponse?.data.error.code}`);
+    }
+  }
 
   const programSet = async () => {
     try {
@@ -65,21 +112,13 @@ const ProgramList = () => {
           },
         )
         .then(response => {
-          const pl = JSON.stringify(response.data.data);
-          programList = JSON.parse(pl);
+          setProgramList(response.data.data);
         });
     } catch (error) {
       const errorResponse = (error as AxiosError).response as any;
       console.log(errorResponse?.data.error.code);
       Alert.alert('알림', `${errorResponse?.data.error.code}`);
     }
-    programList = programList.filter(program => {
-      for(let i = 0;i<bookmarkList.length;i++) {
-        console.log(bookmarkList[i]);
-        if(program.programId==bookmarkList[i].programId) return true;
-      }
-      return false;
-    });
   };
 
   const bookmarkSet = async () => {
@@ -92,15 +131,13 @@ const ProgramList = () => {
           },
         )
         .then(response => {
-          const bl = JSON.stringify(response.data.data);
-          bookmarkList=JSON.parse(bl);
+          setBookmarkList(response.data.data);
         });
     } catch (error) {
       const errorResponse = (error as AxiosError).response as any;
       console.log(errorResponse?.data.error.code);
       Alert.alert('알림', `${errorResponse?.data.error.code}`);
     }
-    setBookmarkNum(bookmarkList.length);
   };
 
   const returnBookmark = (item) => {
@@ -127,7 +164,6 @@ const ProgramList = () => {
     }
     programSet();
     bookmarkSet();
-    setBookmarkNum(bookmarkList.length);
   };
 
   const Program = ({item, onPress}) => (
@@ -165,13 +201,13 @@ const ProgramList = () => {
       </View>
       <View style={styles.main}>
         <View>
-          {bookmarkNum == 0 ? 
+          {bookmarkList.length == 0 ? 
             <Text style={{borderTopWidth:1,borderTopColor:'#EFF0F6'}}>즐겨찾기된 프로그램이 없습니다</Text> 
             :
             <FlatList
-              data={programList}
+              data={bookmarkedProgramList}
               renderItem={renderProgram}
-              keyExtractor={item => item.id}
+              keyExtractor={item => String(item.programId)}
               extraData={programList}
             />
           }

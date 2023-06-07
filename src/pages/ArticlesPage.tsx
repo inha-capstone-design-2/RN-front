@@ -24,14 +24,21 @@ type ArticlesPageProps = NativeStackScreenProps<LoggedInParamList, 'Articles'>;
 type Board = {
   id: number;
   name: string;
+  programId: number;
+  imagePath: string;
   description: string;
+  createdTime: string;
+  updatedTime: string;
 };
 
 type Article = {
-  boardId: number;
-  content: string;
   id: string;
   title: string;
+  content: string;
+  boardId: number;
+  createdTime: string;
+  createdBy: number;
+  updatedBy: number;
 };
 
 const windowWidth = Dimensions.get('window').width;
@@ -41,6 +48,7 @@ const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
   const {programId} = route.params;
   const [articles, setArticles] = useState<Article[]>([]);
   const [board, setBoard] = useState<Board>();
+  const isFocused = useIsFocused();
 
   const toArticle = (articleId: number) => {
     const boardTitle = board?.name as string;
@@ -54,6 +62,10 @@ const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
   };
 
   useEffect(() => {
+    console.log(programId);
+  },[]);
+
+  useEffect(() => {
     const getBoard = async () => {
       try {
         await customAxios
@@ -61,7 +73,8 @@ const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
             headers: {Authorization: `Bearer ${accessToken}`},
           })
           .then(response => {
-            setBoard(response.data.data[0]);
+            setBoard(response.data.data.filter((item)=>item.programId == programId)[0]);
+            console.log(board);
           });
       } catch (error) {
         const errorResponse = (error as AxiosError).response as any;
@@ -70,18 +83,18 @@ const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
       }
     };
     getBoard();
-  }, []);
+  }, [programId,isFocused]);
 
   useEffect(() => {
     const getArticles = async () => {
       try {
         await customAxios
-          .get(`/api/bbs/article/{board-id}?board-id=${programId}`, {
+          .get(`/api/bbs/article/{board-id}?board-id=${board?.id}`, {
             headers: {Authorization: `Bearer ${accessToken}`},
           })
           .then(response => {
-            console.log(response.data.data);
             setArticles(response.data.data);
+            console.log(response.data.data);
           });
       } catch (error) {
         const errorResponse = (error as AxiosError).response as any;
@@ -90,7 +103,7 @@ const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
       }
     };
     getArticles();
-  }, []);
+  }, [board]);
 
   const formatDateTime = (dateTimeStr: string) => {
     const date = new Date(dateTimeStr);
@@ -134,11 +147,11 @@ const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
           </TouchableOpacity>
           <Text style={styles.boardTitle}>{board?.name}</Text>
         </View>
-        <TouchableOpacity onPress={() => writeArticle}>
+        <TouchableOpacity onPress={writeArticle}>
           <Text style={styles.write}>글 쓰기</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.article}>
+      <View>
         {articles.length == 0 ? (
           <Text style={{textAlign: 'center'}}>게시글이 없습니다.</Text>
         ) : (
@@ -185,7 +198,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
   },
   write: {
-    backgroundColor: '#4A3AFF',
+    backgroundColor: '#4E5BF6',
     borderRadius: 30,
     margin: 15,
     padding: 1,
