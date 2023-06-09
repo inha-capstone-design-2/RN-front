@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import { 
-  View, 
-  TextInput, 
+import {
+  View,
+  TextInput,
   StyleSheet,
   StatusBar,
   TouchableOpacity,
@@ -16,7 +16,7 @@ import {RootState} from '../store/reducer';
 import {Button} from 'react-native-elements';
 import {customAxios} from '../utils/customAxios';
 import {AxiosError} from 'axios';
-import { useIsFocused } from '@react-navigation/native'
+import {useIsFocused} from '@react-navigation/native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faArrowLeft} from '@fortawesome/free-solid-svg-icons';
 
@@ -31,19 +31,18 @@ function WriteArticlePage({navigation, route}: WriteArticlePageProps) {
   const userId = useSelector((state: RootState) => state.user.userId);
   const accessToken = useSelector((state: RootState) => state.user.accessToken);
 
-  const {boardId, boardTitle} = route.params;
+  const {programId} = route.params;
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
   const submitArticle = async () => {
-    console.log(boardId);
     try {
       await customAxios
         .post(
           `/api/bbs/article/`,
           {
-            boardId: boardId,
+            boardId: programId,
             content: content,
             title: title,
           },
@@ -66,13 +65,11 @@ function WriteArticlePage({navigation, route}: WriteArticlePageProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <TouchableOpacity style={styles.goBack} onPress={() => navigation.goBack()}>
-            <FontAwesomeIcon
-              icon={faArrowLeft}
-              size={30}
-            />
+          <TouchableOpacity
+            style={styles.goBack}
+            onPress={() => navigation.goBack()}>
+            <FontAwesomeIcon icon={faArrowLeft} size={30} />
           </TouchableOpacity>
-          <Text style={styles.boardTitle}>{boardTitle}</Text>
         </View>
         <TouchableOpacity onPress={() => submitArticle()}>
           <Text style={styles.write}>완료</Text>
@@ -82,13 +79,13 @@ function WriteArticlePage({navigation, route}: WriteArticlePageProps) {
         style={styles.title}
         placeholder="제목"
         value={title}
-        onChangeText={(text) => setTitle(text)}
+        onChangeText={text => setTitle(text)}
       />
       <TextInput
         style={styles.content}
         placeholder="내용을 입력하세요"
         value={content}
-        onChangeText={(text) => setContent(text)}
+        onChangeText={text => setContent(text)}
       />
     </View>
   );
@@ -117,7 +114,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   goBack: {
-    paddingLeft:16,
+    paddingLeft: 16,
   },
   boardTitle: {
     fontSize: 24,
@@ -126,7 +123,6 @@ const styles = StyleSheet.create({
     //width: windowWidth - 100,
     textAlignVertical: 'center',
     color: 'black',
-
   },
   write: {
     backgroundColor: '#4E5BF6',
@@ -156,7 +152,7 @@ const styles = StyleSheet.create({
     flex: 8,
     fontSize: 18,
     alignSelf: 'stretch',
-    margin:10,
+    margin: 10,
     paddingHorizontal: 10,
     textAlignVertical: 'top',
   },

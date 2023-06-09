@@ -32,12 +32,12 @@ type Board = {
 };
 
 type Article = {
-  id: string;
+  id: number;
   title: string;
   content: string;
   boardId: number;
   createdTime: string;
-  createdBy: number;
+  createdBy: string;
   updatedBy: number;
 };
 
@@ -45,25 +45,21 @@ const windowWidth = Dimensions.get('window').width;
 
 const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
   const accessToken = useSelector((state: RootState) => state.user.accessToken);
-  const {programId} = route.params;
+  const {programId, programTitle} = route.params;
   const [articles, setArticles] = useState<Article[]>([]);
   const [board, setBoard] = useState<Board>();
   const isFocused = useIsFocused();
 
+  console.log(route.params);
+
   const toArticle = (articleId: number) => {
     const boardTitle = board?.name as string;
-    navigation.navigate('Article', {articleId, boardTitle});
+    navigation.navigate('Article', {programId, articleId});
   };
 
   const writeArticle = () => {
-    const boardId = board?.id as number;
-    const boardTitle = board?.name as string;
-    navigation.navigate('WriteArticle', {boardId, boardTitle});
+    navigation.navigate('WriteArticle', {programId});
   };
-
-  useEffect(() => {
-    console.log(programId);
-  },[]);
 
   useEffect(() => {
     const getBoard = async () => {
@@ -72,10 +68,7 @@ const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
           .get(`/api/bbs/board/`, {
             headers: {Authorization: `Bearer ${accessToken}`},
           })
-          .then(response => {
-            setBoard(response.data.data.filter((item)=>item.programId == programId)[0]);
-            console.log(board);
-          });
+          .then(response => {});
       } catch (error) {
         const errorResponse = (error as AxiosError).response as any;
         console.log(errorResponse?.data.error.code);
@@ -83,18 +76,18 @@ const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
       }
     };
     getBoard();
-  }, [programId,isFocused]);
+  }, [programId, isFocused]);
 
   useEffect(() => {
     const getArticles = async () => {
       try {
         await customAxios
-          .get(`/api/bbs/article/{board-id}?board-id=${board?.id}`, {
+          .get(`/api/bbs/article/{board-id}?board-id=${programId}`, {
             headers: {Authorization: `Bearer ${accessToken}`},
           })
           .then(response => {
-            setArticles(response.data.data);
             console.log(response.data.data);
+            setArticles(response.data.data);
           });
       } catch (error) {
         const errorResponse = (error as AxiosError).response as any;
@@ -145,21 +138,20 @@ const ArticlesPage = ({navigation, route}: ArticlesPageProps) => {
             onPress={() => navigation.goBack()}>
             <FontAwesomeIcon icon={faArrowLeft} size={30} />
           </TouchableOpacity>
-          <Text style={styles.boardTitle}>{board?.name}</Text>
+          <Text style={styles.boardTitle}>{programTitle} 게시판</Text>
         </View>
         <TouchableOpacity onPress={writeArticle}>
           <Text style={styles.write}>글 쓰기</Text>
         </TouchableOpacity>
       </View>
       <View>
-        {articles.length == 0 ? (
+        {articles.length === 0 ? (
           <Text style={{textAlign: 'center'}}>게시글이 없습니다.</Text>
         ) : (
           <FlatList
             data={articles}
             renderItem={renderArticles}
             keyExtractor={item => item.id}
-            //extraData={}
           />
         )}
       </View>
@@ -191,7 +183,7 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
   },
   boardTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     padding: 16,
     //width: windowWidth - 100,

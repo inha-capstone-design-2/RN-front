@@ -160,30 +160,43 @@ function ChatPage({navigation, route}: ChatPageProps) {
 
   const sendImage = async (imageUri: string) => {
     try {
-      await axios
-        .post('/v1/chat/', {
+      // await axios
+      //   .post('/v1/chat/', {
+      //     nickname: 'minwoo',
+      //     userId: myId,
+      //     programId: programId,
+      //     text: null,
+      //     image: true,
+      //     imageUri: imageUri,
+      //   })
+      //   .then(response => {
+      //     setMessages([
+      //       ...messages,
+      //       {
+      //         nickname: 'minwoo',
+      //         userId: myId,
+      //         programId: programId,
+      //         text: null,
+      //         image: true,
+      //         imageUri: imageUri,
+      //       },
+      //     ]);
+
+      //     setModalVisible(false);
+      //   });
+      setMessages([
+        ...messages,
+        {
           nickname: 'minwoo',
           userId: myId,
           programId: programId,
           text: null,
           image: true,
           imageUri: imageUri,
-        })
-        .then(response => {
-          setMessages([
-            ...messages,
-            {
-              nickname: 'minwoo',
-              userId: myId,
-              programId: programId,
-              text: null,
-              image: true,
-              imageUri: imageUri,
-            },
-          ]);
+        },
+      ]);
 
-          setModalVisible(false);
-        });
+      setModalVisible(false);
     } catch (error) {
       setModalVisible(false);
       console.log(error);

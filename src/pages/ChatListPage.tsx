@@ -50,9 +50,6 @@ const ChatListPage = ({navigation}: ChatListProps) => {
         const currentTime = new Date(); // 현재 시간 객체 생성
         currentTime.setMinutes(currentTime.getMinutes() - 10);
 
-        console.log(currentTime);
-        console.log(canEnterTime);
-
         if (currentTime.getTime() < canEnterTime.getTime()) {
           setCanEnter(false);
         }

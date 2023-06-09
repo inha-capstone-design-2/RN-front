@@ -1,14 +1,15 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
-  View, 
-  FlatList, 
-  StyleSheet, 
-  Text, 
-  TextInput, 
-  StatusBar, 
+  View,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  StatusBar,
   TouchableOpacity,
   Alert,
   Image,
+  ScrollView,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import axios, {AxiosError} from 'axios';
@@ -19,15 +20,15 @@ import {faStar} from '@fortawesome/free-solid-svg-icons';
 import {useNavigation} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
 import {RootState} from '../store/reducer';
-import { useIsFocused } from '@react-navigation/native'
+import {useIsFocused} from '@react-navigation/native';
 
 type Channel = {
   channelId: number;
   channelName: string;
-  createdTime: string;
-  createdBy: number;
-  updatedTime: string;
-  updatedBy: number;
+  createdTime?: string;
+  createdBy?: number;
+  updatedTime?: string;
+  updatedBy?: number;
 };
 
 type Program = {
@@ -36,79 +37,58 @@ type Program = {
   channelId: number;
 };
 
-type Bookmark = {
-  id: number;
-  programId: number;
-  createdTime: string;
-  updatedTime: string;
+type IProgram = {
+  item: Program;
 };
 
 const ProgramList = () => {
   const navigation = useNavigation();
   const [channelList, setChannelList] = useState<Channel[]>([]);
   const [programList, setProgramList] = useState<Program[]>([]);
-  const [bookmarkList, setBookmarkList] = useState<Bookmark[]>([]);
   const [currentChannel, setCurrentChannel] = useState(0);
   const [searchTarget, setSearchTarget] = useState('channel');
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState('');
   const [filteredChannel, setFilteredChannel] = useState(channelList);
   const [filteredProgram, setFilteredProgram] = useState(programList);
-  const [noResult, setNoResult] = useState(false);
-  const myId = useSelector((state: RootState) => state.user.userId);
   const accessToken = useSelector((state: RootState) => state.user.accessToken);
   const isFocused = useIsFocused();
 
   useEffect(() => {
     const initList = async () => {
-      await channelSet();
-      await bookmarkSet();
-    }
+      await programSet(channelList[0].channelId);
+    };
     initList();
-  },[isFocused]);
+  }, [channelList]);
 
   useEffect(() => {
-    const initList = async () => {
-      await programSet(channelList[0].channelId);
-    }
-    initList();
-  },[channelList]);
-
-  const toProgramDetail = (programId: number, item) => {
-    const isBookmarked = (returnBookmark(item).length != 0);
-    navigation.navigate('ProgramDetail', {programId, isBookmarked});
-  };
-
-  const channelSet = async() => {
-    try {
-      await customAxios
-        .get(
-          `/api/channel/`,
-          {
+    const channelSet = async () => {
+      try {
+        await customAxios
+          .get(`/api/channel/`, {
             headers: {Authorization: `Bearer ${accessToken}`},
-          },
-        )
-        .then(response => {
-          setChannelList(response.data.data);
-          setFilteredChannel(channelList);
-        });
-    } catch (error) {
-      const errorResponse = (error as AxiosError).response as any;
-      console.log(errorResponse?.data.error.code);
-      Alert.alert('알림', `${errorResponse?.data.error.code}`);
-    }
-  }
+          })
+          .then(response => {
+            setChannelList(response.data.data);
+            setFilteredChannel(channelList);
+          });
+      } catch (error) {
+        const errorResponse = (error as AxiosError).response as any;
+        console.log(errorResponse?.data.error.code);
+        Alert.alert('알림', `${errorResponse?.data.error.code}`);
+      }
+    };
+    channelSet();
+  }, []);
 
-  const programSet = async (channelId:number) => {
+  const programSet = async (channelId: number) => {
     setCurrentChannel(channelId);
     try {
       await customAxios
-        .get(
-          `/api/program/{channel-id}?channel-id=${channelId}`,
-          {
-            headers: {Authorization: `Bearer ${accessToken}`},
-          },
-        )
+        .get(`/api/program/{channel-id}?channel-id=${channelId}`, {
+          headers: {Authorization: `Bearer ${accessToken}`},
+        })
         .then(response => {
+          console.log(response.data.data);
           setProgramList(response.data.data);
           setFilteredProgram(programList);
         });
@@ -119,154 +99,61 @@ const ProgramList = () => {
     }
   };
 
-  const bookmarkSet = async () => {
-    try {
-      await customAxios
-        .get(
-          `/api/bookmark/`,
-          {
-            headers: {Authorization: `Bearer ${accessToken}`},
-          },
-        )
-        .then(response => {
-          setBookmarkList(response.data.data);
-        });
-    } catch (error) {
-      const errorResponse = (error as AxiosError).response as any;
-      console.log(errorResponse?.data.error.code);
-      Alert.alert('알림', `${errorResponse?.data.error.code}`);
-    }
-  }
-
-  const returnBookmark = (item:Program) => {
-    return bookmarkList.filter(bookmark => bookmark.programId==item.programId);
-  }
-
-  const handleBookmarkPress = async (item:Program) => {
-    const bookmark = returnBookmark(item);
-    console.log(item.programId);
-    if(bookmark.length == 0){
-      try {
-        await customAxios
-          .post(
-            `/api/bookmark/`,
-            {
-              memberId: myId,
-              programId: item.programId
-            },
-            {
-              headers: {Authorization: `Bearer ${accessToken}`},
-            },
-          )
-          .then(response => {
-            console.log(response.data);
-          });
-      } catch (error) {
-        const errorResponse = (error as AxiosError).response as any;
-        console.log(errorResponse?.data.error.code);
-        Alert.alert('알림', `${errorResponse?.data.error.code}`);
-      }
-    }
-    else{
-      try {
-        await customAxios
-          .delete(
-            `/api/bookmark/{bookmark-id}?bookmark-id=${bookmark[0].id}`,
-            {
-              headers: {Authorization: `Bearer ${accessToken}`},
-            },
-          )
-          .then(response => {
-            console.log(response.data);
-          });
-      } catch (error) {
-        const errorResponse = (error as AxiosError).response as any;
-        console.log(errorResponse?.data.error.code);
-        Alert.alert('알림', `${errorResponse?.data.error.code}`);
-      }
-    }
-    bookmarkSet();
-  };
-
-  const Channel = ({ item, onPress, backgroundColor}) => (
-    <TouchableOpacity onPress={onPress} style={[styles.channelList, {backgroundColor}]}>
+  const Channel = ({item, onPress, backgroundColor}: any) => (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.channelList, {backgroundColor}]}>
       <Text style={[styles.channelName]}>{item.channelName}</Text>
     </TouchableOpacity>
   );
 
-  const Program = ({item, onPress}) => (
-    <TouchableOpacity style={styles.programList} onPress={onPress}>
-      <Text style={styles.programTitle}>{item.programTitle}</Text>
-      <TouchableOpacity style={styles.bookmark} onPress={() => handleBookmarkPress(item)}>
+  const renderChannel = ({item}: any) => {
+    const backgroundColor =
+      item.channelId === currentChannel ? '#4E5BF6' : '#A6A6A6';
+    return (
+      <Channel
+        item={item}
+        onPress={() => {
+          programSet(item.channelId);
+        }}
+        backgroundColor={backgroundColor}
+      />
+    );
+  };
+
+  const toProgramDetail = (programId: number, programTitle: string) => {
+    navigation.navigate('ProgramDetail', {
+      programId,
+      programTitle,
+      isBookmarked: true,
+    });
+  };
+
+  const renderProgram = useCallback(({item}: IProgram) => {
+    const {programId, programTitle} = item;
+
+    const isBookmarked = true;
+    return (
+      <TouchableOpacity
+        style={styles.programList}
+        onPress={() => toProgramDetail(programId, programTitle)}>
+        <Text style={styles.programTitle}>{programTitle}</Text>
+        <TouchableOpacity>
           <FontAwesomeIcon
             icon={faStar}
             size={26}
-            style={returnBookmark(item).length != 0 ? styles.bookmarkStar : styles.unBookmarkStar}
+            style={isBookmarked ? styles.bookmarkStar : styles.unBookmarkStar}
           />
         </TouchableOpacity>
-    </TouchableOpacity>
-  )
-
-  const renderChannel = ({ item }) => {
-    const backgroundColor = item.channelId === currentChannel ? '#4E5BF6' : '#A6A6A6';
-    //const color = item.channelId === currentChannel ? 'white' : 'black';
-    return (
-      <Channel 
-        item={item}
-        onPress={() => {programSet(item.channelId)}}
-        backgroundColor={backgroundColor}
-        //textColor={color}
-      />
-    )
-  };
-
-  const renderProgram = ({ item }) => (
-    <Program item={item} onPress={() => toProgramDetail(item.programId, item)} />
-  );
-
-  // useEffect(() => {
-  //   if(searchTarget=='channel'){
-  //     const filtered = channelList.filter(item => item.channelName.toLowerCase().includes(searchText.toLowerCase()));
-  //     if(filtered.length==0) {
-  //       setNoResult(true);
-  //       setFilteredChannel(channelList);
-  //     }
-  //     else {
-  //       setNoResult(false);
-  //       setFilteredChannel(filtered);
-  //     }
-  //     setCurrentChannel(filteredChannel[0].channelId);
-  //   }
-  //   else if(searchTarget=='program'){
-  //     const filtered = [];
-  //     const filteredCh = [];
-  //     for(let i=0;i<programList.length;i++){
-  //       filtered[i]=programList[i].filter(item => item.title.toLowerCase().includes(searchText.toLowerCase()));
-  //       if(filtered[i].length!=0) {
-  //         filteredCh.push(channelList[i]);
-  //       }
-  //     }
-
-  //     if(filteredCh.length==0) {
-  //       setNoResult(true);
-  //       setFilteredProgram(programList);
-  //       setFilteredChannel(channelList);
-  //     }
-  //     else {
-  //       setNoResult(false);
-  //       setFilteredProgram(filtered);
-  //       setFilteredChannel(filteredCh);
-  //     }
-  //     setCurrentChannel(filteredChannel[0].channelId);
-  //   }
-  // }, [searchText]);
+      </TouchableOpacity>
+    );
+  }, []);
 
   useEffect(() => {
     setFilteredChannel(channelList);
     setFilteredProgram(programList);
-    setSearchText("");
+    setSearchText('');
   }, [searchTarget]);
-
 
   return (
     <View style={styles.container}>
@@ -275,46 +162,40 @@ const ProgramList = () => {
           style={styles.picker}
           mode="dropdown"
           selectedValue={searchTarget}
-          onValueChange={(itemValue, itemIndex) =>
-            setSearchTarget(itemValue)
-          }
-        >
+          onValueChange={(itemValue, itemIndex) => setSearchTarget(itemValue)}>
           <Picker.Item label="채널" value="channel" />
           <Picker.Item label="프로그램" value="program" />
         </Picker>
-        <TextInput 
+        <TextInput
           style={styles.input}
-          onChangeText={(text) => setSearchText(text)}
+          onChangeText={text => setSearchText(text)}
           value={searchText}
-          placeholder={searchTarget=='channel' ? "채널 이름으로 검색" : "프로그램 이름으로 검색"}
+          placeholder={
+            searchTarget == 'channel'
+              ? '채널 이름으로 검색'
+              : '프로그램 이름으로 검색'
+          }
         />
       </View>
       <View style={styles.main}>
         <View style={styles.channel}>
           <FlatList
             data={channelList}
-            horizontal = {true}
+            horizontal={true}
             renderItem={renderChannel}
             keyExtractor={item => String(item.channelId)}
             extraData={currentChannel}
             showsHorizontalScrollIndicator={false}
           />
         </View>
-        <View>
-        </View>
-        <View>
-          {noResult ? (
-            <Text>검색 결과가 없습니다</Text>
-          ):(
-            <FlatList
-              data={programList}
-              renderItem={renderProgram}
-              keyExtractor={item => String(item.programId)}
-              extraData={bookmarkList}
-            />
-          )
-        }
-        </View>
+        <View></View>
+        <ScrollView style={styles.program}>
+          <FlatList
+            data={programList}
+            renderItem={renderProgram}
+            keyExtractor={item => String(item.programId)}
+          />
+        </ScrollView>
       </View>
     </View>
   );
@@ -339,7 +220,7 @@ const styles = StyleSheet.create({
   },
 
   picker: {
-    marginHorizontal:5,
+    marginHorizontal: 5,
   },
 
   input: {
@@ -347,12 +228,12 @@ const styles = StyleSheet.create({
     width: 370,
     height: 55,
     borderWidth: 1,
-    borderColor: "#A6A6A6",
+    borderColor: '#A6A6A6',
     borderRadius: 46,
     fontSize: 16,
-    color: "#6F6C90",
+    color: '#6F6C90',
     paddingLeft: 18,
-    marginHorizontal:10,
+    marginHorizontal: 10,
     marginBottom: 10,
   },
 
@@ -379,31 +260,30 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
-  programList: {
-    flexDirection: 'row',
-    marginHorizontal:10,
-    padding:15,
-    borderBottomWidth:0.5,
-    borderBottomColor: '#A6A6A6',
-    justifyContent: 'space-between',
+  program: {
+    padding: 16,
   },
 
-  programTime: {
-    fontSize: 15,
-    margin: 5,
-    textAlignVertical: 'center'
+  programList: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 8, height: 4},
+    shadowOpacity: 0.4,
+    shadowRadius: 2,
+    elevation: 4,
   },
 
   programTitle: {
-    fontWeight: 'bold',
-    fontSize: 20,
+    fontSize: 16,
     textAlignVertical: 'center',
     marginLeft: 10,
     color: 'black',
-  },
-
-  bookmark: {
-    
   },
 
   bookmarkStar: {
@@ -418,7 +298,7 @@ const styles = StyleSheet.create({
     //height: 50,
     borderColor: 'gray',
     borderWidth: 1,
-  }
+  },
 });
 
 export default ProgramList;

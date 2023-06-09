@@ -24,34 +24,33 @@ const ProgramBar = () => {
 
   const programs = {
     SBS: [
-      {programId: 1, time: '00:00', title: 'Program A', favorite: false},
-      {programId: 2, time: '02:00', title: 'Program B', favorite: false},
-      {programId: 3, time: '04:00', title: 'Program C', favorite: false},
-      {programId: 4, time: '06:00', title: 'Program D', favorite: true},
+      {programId: 1, time: '00:00', title: '낭만닥터 김사부', favorite: true},
+      {programId: 2, time: '02:00', title: '꽃선비 열애사', favorite: true},
+      {programId: 3, time: '04:00', title: '모범택시 2', favorite: false},
+      {programId: 4, time: '06:00', title: '트롤리', favorite: false},
     ],
     KBS: [
-      {programId: 11, time: '00:00', title: 'Program A', favorite: true},
-      {programId: 12, time: '01:00', title: 'Program B', favorite: false},
-      {programId: 13, time: '03:00', title: 'Program C', favorite: false},
-      {programId: 14, time: '05:00', title: 'Program D', favorite: false},
-    ],
-    SPOTV: [
-      {programId: 21, time: '00:00', title: 'Program A', favorite: false},
-      {programId: 22, time: '02:00', title: 'Program B', favorite: false},
-      {programId: 23, time: '04:00', title: 'Program C', favorite: false},
-      {programId: 24, time: '06:00', title: 'Program D', favorite: false},
+      {programId: 11, time: '00:00', title: '가슴이 뛴다', favorite: true},
+      {
+        programId: 12,
+        time: '01:00',
+        title: '어쩌다 마주친, 그대',
+        favorite: false,
+      },
+      {programId: 13, time: '03:00', title: '진짜가 나타났다', favorite: false},
+      {programId: 14, time: '05:00', title: '금이야 옥이야', favorite: false},
     ],
     JTBC: [
-      {programId: 31, time: '00:00', title: 'Program A', favorite: true},
-      {programId: 32, time: '01:00', title: 'Program B', favorite: false},
-      {programId: 33, time: '03:00', title: 'Program C', favorite: true},
-      {programId: 34, time: '05:00', title: 'Program D', favorite: false},
+      {programId: 31, time: '00:00', title: '비밀의 여자', favorite: true},
+      {programId: 32, time: '01:00', title: '닥터 차정숙', favorite: false},
+      {programId: 33, time: '03:00', title: '나쁜 엄마', favorite: true},
+      {programId: 34, time: '05:00', title: '신성한 이혼', favorite: false},
     ],
     KBC: [
-      {programId: 41, time: '00:00', title: 'Program A', favorite: true},
-      {programId: 42, time: '02:00', title: 'Program B', favorite: false},
-      {programId: 43, time: '04:00', title: 'Program C', favorite: false},
-      {programId: 44, time: '06:00', title: 'Program D', favorite: false},
+      {programId: 41, time: '00:00', title: '듣고 보니 그럴싸', favorite: true},
+      {programId: 42, time: '02:00', title: '대행사', favorite: false},
+      {programId: 43, time: '04:00', title: '인사이더', favorite: false},
+      {programId: 44, time: '06:00', title: '공작도시', favorite: false},
     ],
   };
 
@@ -120,6 +119,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   programTitle: {
+    textAlign: 'center',
     fontSize: 14,
   },
 });

@@ -13,12 +13,13 @@ import {
 } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import {check, PERMISSIONS, RESULTS} from 'react-native-permissions';
+import {useSelector} from 'react-redux';
+import {RootState} from '../store/reducer';
 
 const SettingsPage = () => {
+  const {email, nickname} = useSelector((state: RootState) => state.user);
+
   const navigation = useNavigation();
-  const [profileImage, setProfileImage] = useState();
-  const [nickname, setNickname] = useState('nickname');
-  const [images, setImages] = useState<{uri: string}>();
   const [darkMode, setDarkMode] = useState(false);
   const [alarmMode, setAlarmMode] = useState(false);
 
@@ -33,20 +34,6 @@ const SettingsPage = () => {
   const toAlarmSetting = () => {
     navigation.navigate('AlarmSetting');
   };
-
-  const uploadPhoto = useCallback(
-    async response => {
-      console.log(response);
-      setImages([
-        ...images,
-        {uri: `data:${response.mime};base64,${response.data}`},
-      ]);
-
-      const orientation = (response.exif as any)?.Orientation;
-      console.log('orientation', orientation);
-    },
-    [images],
-  );
 
   const toPhoto = () => {
     check(PERMISSIONS.ANDROID.CAMERA).then(result => {
@@ -88,62 +75,25 @@ const SettingsPage = () => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.profileImageContainer} onPress={toPhoto}>
-        <Image style={styles.profileImage} source={profileImage} />
+        <Image
+          style={styles.profileImage}
+          source={{
+            uri: 'https://mblogthumb-phinf.pstatic.net/MjAyMDExMDFfMTgy/MDAxNjA0MjI4ODc1NDMw.Ex906Mv9nnPEZGCh4SREknadZvzMO8LyDzGOHMKPdwAg.ZAmE6pU5lhEdeOUsPdxg8-gOuZrq_ipJ5VhqaViubI4g.JPEG.gambasg/%EC%9C%A0%ED%8A%9C%EB%B8%8C_%EA%B8%B0%EB%B3%B8%ED%94%84%EB%A1%9C%ED%95%84_%ED%95%98%EB%8A%98%EC%83%89.jpg?type=w800',
+          }}
+        />
         <Text style={styles.profileImageText}>Change Profile Image</Text>
       </TouchableOpacity>
       <View style={styles.nicknameContainer}>
         <View style={styles.nickname}>
           <Text style={styles.nicknameLabel}>Nickname:</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Type a message..."
-            value={nickname}
-            onChangeText={nickname => setNickname(nickname)}
-          />
+          <Text>{nickname}</Text>
         </View>
 
-        <TouchableOpacity style={styles.nicknameChangeButton}>
-          <Text style={styles.nicknameChangeButtonText}>save</Text>
-        </TouchableOpacity>
+        <View style={styles.nickname}>
+          <Text style={styles.nicknameLabel}>email:</Text>
+          <Text>{email}</Text>
+        </View>
       </View>
-
-      <View style={styles.alarmContainer}>
-        <Text style={styles.modeLabel}>Alarm</Text>
-        <Text style={styles.explainText}>알람을 활성화 합니다</Text>
-        <Switch
-          style={styles.modeSwitch}
-          trackColor={{false: '#767577', true: '#81b0ff'}}
-          thumbColor={alarmMode ? '#f5dd4b' : '#f4f3f4'}
-          ios_backgroundColor="#3e3e3e"
-          onValueChange={handleAlarmModeToggle}
-          value={alarmMode}
-        />
-      </View>
-
-      <View style={styles.darkModeContainer}>
-        <Text style={styles.modeLabel}>Dark Mode</Text>
-        <Text style={styles.explainText}>다크모드를 활성화 합니다</Text>
-        <Switch
-          style={styles.modeSwitch}
-          trackColor={{false: '#767577', true: '#81b0ff'}}
-          thumbColor={darkMode ? '#f5dd4b' : '#f4f3f4'}
-          ios_backgroundColor="#3e3e3e"
-          onValueChange={handleDarkModeToggle}
-          value={darkMode}
-        />
-      </View>
-
-      <TouchableOpacity
-        style={styles.settingContainer}
-        onPress={toAlarmSetting}>
-        <Text style={styles.toAlarmSettingText}>알람 설정</Text>
-        <Text style={styles.explainText}>알람 설정 페이지로 이동합니다</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.resignContainer}>
-        <Text style={styles.resignText}>회원 탈퇴</Text>
-        <Text style={styles.explainText}>계정을 삭제합니다</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -170,7 +120,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   nicknameContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 24,
@@ -179,6 +129,7 @@ const styles = StyleSheet.create({
   },
 
   nickname: {
+    padding: 5,
     flexDirection: 'row',
     alignItems: 'center',
   },

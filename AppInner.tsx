@@ -20,12 +20,16 @@ import EncryptedStorage from 'react-native-encrypted-storage';
 import axios from 'axios';
 import socket from './src/utils/useSocket';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
-import {faList, faStar, faComments, faGear} from '@fortawesome/free-solid-svg-icons';
+import {
+  faList,
+  faStar,
+  faComments,
+  faGear,
+} from '@fortawesome/free-solid-svg-icons';
 import jwt_decode from 'jwt-decode';
 import {customAxios} from './src/utils/customAxios';
 import {useAppDispatch} from './src/store';
 import SplashScreen from 'react-native-splash-screen';
-
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -40,18 +44,19 @@ export type LoggedInParamList = {
   };
   ProgramDetail: {
     programId: number;
+    programTitle: string;
     isBookmarked: boolean;
   };
   Articles: {
     programId: number;
+    programTitle: string;
   };
   Article: {
+    programId: number;
     articleId: number;
-    boardTitle: string;
   };
   WriteArticle: {
-    boardId: number;
-    boardTitle: string;
+    programId: number;
   };
   Setting: undefined;
   AlarmSetting: undefined;
@@ -68,67 +73,62 @@ function Tabs() {
       tabBarOptions={{
         activeTintColor: '#4A3AFF',
         inactiveTintColor: 'gray',
-      }}
-    >
+      }}>
       <Tab.Screen
         name="ProgramList"
         component={ProgramListPage}
-        options={
-          {headerShown: false,
-            tabBarIcon: ({ focused }) => (
-              <FontAwesomeIcon
-              style={focused? {color: '#4A3AFF'} : {color: 'gray'}}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({focused}) => (
+            <FontAwesomeIcon
+              style={focused ? {color: '#4A3AFF'} : {color: 'gray'}}
               icon={faList}
               size={26}
-              />
-            )
-          }
-        }
+            />
+          ),
+        }}
       />
       <Tab.Screen
         name="Favorites"
         component={FavoritesPage}
-        options={
-          {headerShown: false,
-            tabBarIcon: ({ focused }) => (
-              <FontAwesomeIcon
-              style={focused? {color: '#4A3AFF'} : {color: 'gray'}}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({focused}) => (
+            <FontAwesomeIcon
+              style={focused ? {color: '#4A3AFF'} : {color: 'gray'}}
               icon={faStar}
               size={26}
-              />
-            )
-          }
-        }
+            />
+          ),
+        }}
       />
       <Tab.Screen
         name="ChatList"
         component={ChatListPage}
-        options={
-          {headerShown: false,
-            tabBarIcon: ({ focused }) => (
-              <FontAwesomeIcon
-              style={focused? {color: '#4A3AFF'} : {color: 'gray'}}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({focused}) => (
+            <FontAwesomeIcon
+              style={focused ? {color: '#4A3AFF'} : {color: 'gray'}}
               icon={faComments}
               size={26}
-              />
-            )
-          }
-        }
+            />
+          ),
+        }}
       />
       <Tab.Screen
         name="Setting"
         component={SettingPage}
-        options={
-          {headerShown: false,
-            tabBarIcon: ({ focused }) => (
-              <FontAwesomeIcon
-              style={focused? {color: '#4A3AFF'} : {color: 'gray'}}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({focused}) => (
+            <FontAwesomeIcon
+              style={focused ? {color: '#4A3AFF'} : {color: 'gray'}}
               icon={faGear}
               size={26}
-              />
-            )
-          }
-        }
+            />
+          ),
+        }}
       />
     </Tab.Navigator>
   );
