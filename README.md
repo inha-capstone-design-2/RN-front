@@ -1,5 +1,3 @@
-# tv-chat read.me
-
 ## 1. rn-front파일 압축해제
 <br/>
 
@@ -24,10 +22,12 @@ npm -v
 
 [Setting up the development environment · React Native](https://reactnative.dev/docs/environment-setup)
 <br/>
+<br/>
 
 ## 4. Android Studio설치
 
 [Download Android Studio & App Tools - Android Developers](https://developer.android.com/studio?gclid=CjwKCAjw4ZWkBhA4EiwAVJXwqdl0kh4bkukdUut1Bs4Y4VoA9QMqOiB-taGhBMqT080W8Tp5Ok-dOxoCpw8QAvD_BwE&gclsrc=aw.ds)
+<br/>
 <br/>
 
 ## 5. packages설치
