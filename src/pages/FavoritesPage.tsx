@@ -26,7 +26,7 @@ import {useIsFocused} from '@react-navigation/native';
 type BookmarkedProgram = {
   id: number;
   programId: number;
-  // programTitle: string;
+  programTitle: string;
 };
 
 type IBookmarkedProgram = {
@@ -54,11 +54,13 @@ const ProgramList = () => {
   );
 
   const renderProgram = useCallback(({item}: IBookmarkedProgram) => {
-    const {programId} = item;
+    const {programId, programTitle} = item;
 
     return (
-      <TouchableOpacity style={styles.programContainer}>
-        <Text style={styles.programTitle}>프로그램 이름</Text>
+      <TouchableOpacity
+        style={styles.programContainer}
+        onPress={() => toProgramDetail(programId, programTitle)}>
+        <Text style={styles.programTitle}>{programTitle}</Text>
       </TouchableOpacity>
     );
   }, []);
@@ -161,7 +163,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 
-  programTitle: {},
+  programTitle: {
+    fontSize: 14,
+  },
 });
 
 export default ProgramList;

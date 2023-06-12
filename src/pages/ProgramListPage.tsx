@@ -19,7 +19,7 @@ const ProgramListPage = () => {
     <View style={styles.container}>
       <View style={styles.buttonContainer}>
         <Button
-          title="ProgramBar"
+          title="시간표로 보기"
           onPress={toggleShowProgramBar}
           buttonStyle={
             showProgramBar ? styles.activeButton : styles.inactiveButton
@@ -28,7 +28,7 @@ const ProgramListPage = () => {
           containerStyle={styles.button}
         />
         <Button
-          title="ProgramList"
+          title="리스트로 보기"
           onPress={toggleShowProgramList}
           buttonStyle={
             !showProgramBar ? styles.activeButton : styles.inactiveButton

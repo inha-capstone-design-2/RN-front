@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -7,69 +7,68 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import {chatAxios} from '../utils/customAxios';
 
 type Program = {
-  programId: number;
-  time: string;
-  title: string;
-  favorite: boolean;
+  program: string;
+  broadcastor: string;
+  startTime: Date;
+};
+
+type Broadcast = {
+  [key: string]: Program[];
 };
 
 const ProgramBar = () => {
+  let broadcast: Broadcast = {};
   const navigation = useNavigation();
+  const [broadcasts, setBroadcasts] = useState<Broadcast>({});
 
   const toProgramDetail = (programId: number) => {
     navigation.navigate('ProgramDetail', {programId});
   };
 
-  const programs = {
-    SBS: [
-      {programId: 1, time: '00:00', title: '낭만닥터 김사부', favorite: true},
-      {programId: 2, time: '02:00', title: '꽃선비 열애사', favorite: true},
-      {programId: 3, time: '04:00', title: '모범택시 2', favorite: false},
-      {programId: 4, time: '06:00', title: '트롤리', favorite: false},
-    ],
-    KBS: [
-      {programId: 11, time: '00:00', title: '가슴이 뛴다', favorite: true},
-      {
-        programId: 12,
-        time: '01:00',
-        title: '어쩌다 마주친, 그대',
-        favorite: false,
-      },
-      {programId: 13, time: '03:00', title: '진짜가 나타났다', favorite: false},
-      {programId: 14, time: '05:00', title: '금이야 옥이야', favorite: false},
-    ],
-    JTBC: [
-      {programId: 31, time: '00:00', title: '비밀의 여자', favorite: true},
-      {programId: 32, time: '01:00', title: '닥터 차정숙', favorite: false},
-      {programId: 33, time: '03:00', title: '나쁜 엄마', favorite: true},
-      {programId: 34, time: '05:00', title: '신성한 이혼', favorite: false},
-    ],
-    KBC: [
-      {programId: 41, time: '00:00', title: '듣고 보니 그럴싸', favorite: true},
-      {programId: 42, time: '02:00', title: '대행사', favorite: false},
-      {programId: 43, time: '04:00', title: '인사이더', favorite: false},
-      {programId: 44, time: '06:00', title: '공작도시', favorite: false},
-    ],
-  };
+  function extractTimeFromDate(dateString: string) {
+    const date = new Date(dateString);
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+
+    return hours + '시 ' + minutes + '분';
+  }
+
+  useEffect(() => {
+    const getPrograms = async () => {
+      await chatAxios.get('/v1/broadcast/schedules').then(response => {
+        const results = response.data.data;
+
+        results.map((result: Program) => {
+          const {program, broadcastor, startTime} = result;
+
+          if (!broadcast[broadcastor]) {
+            broadcast[broadcastor] = [];
+          }
+
+          broadcast[broadcastor].push({program, broadcastor, startTime});
+        });
+        setBroadcasts(broadcast);
+      });
+    };
+    console.log(broadcasts);
+    getPrograms();
+  }, []);
 
   return (
     <ScrollView style={styles.container}>
-      {Object.keys(programs).map(broadcaster => (
+      {Object.keys(broadcasts).map(broadcaster => (
         <View style={styles.broadcasterContainer}>
           <Text style={styles.broadcasterTitle}>{broadcaster}</Text>
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            {programs[broadcaster].map((program: Program) => (
-              <TouchableOpacity
-                onPress={() => toProgramDetail(program.programId)}
-                style={
-                  program.favorite
-                    ? styles.favoriteProgramContainer
-                    : styles.programContainer
-                }>
-                <Text style={styles.programTime}>{program.time}</Text>
-                <Text style={styles.programTitle}>{program.title}</Text>
+            {broadcasts[broadcaster].map((program: Program) => (
+              <TouchableOpacity style={styles.favoriteProgramContainer}>
+                <Text style={styles.programTime}>{program.program}</Text>
+                <Text style={styles.programTitle}>
+                  {extractTimeFromDate(program.startTime.toString())}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -103,15 +102,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   favoriteProgramContainer: {
-    width: 100,
-    height: 80,
+    paddingRight: 5,
+    paddingLeft: 5,
     backgroundColor: 'white',
     marginHorizontal: 5,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#9acd32',
+    borderColor: '#0000c8',
   },
   programTime: {
     fontSize: 16,

@@ -19,7 +19,6 @@ import {faSmile} from '@fortawesome/free-solid-svg-icons';
 import {LoggedInParamList} from '../../AppInner';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import socket from '../utils/useSocket';
-import axios from 'axios';
 import {RootState} from '../store/reducer';
 import {useSelector} from 'react-redux';
 import {chatAxios, customAxios} from '../utils/customAxios';

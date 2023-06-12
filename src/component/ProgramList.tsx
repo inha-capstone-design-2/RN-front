@@ -138,13 +138,6 @@ const ProgramList = () => {
         style={styles.programList}
         onPress={() => toProgramDetail(programId, programTitle)}>
         <Text style={styles.programTitle}>{programTitle}</Text>
-        <TouchableOpacity>
-          <FontAwesomeIcon
-            icon={faStar}
-            size={26}
-            style={isBookmarked ? styles.bookmarkStar : styles.unBookmarkStar}
-          />
-        </TouchableOpacity>
       </TouchableOpacity>
     );
   }, []);

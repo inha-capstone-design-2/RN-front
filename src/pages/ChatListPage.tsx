@@ -88,7 +88,6 @@ const ChatListPage = ({navigation}: ChatListProps) => {
             <Text style={styles.chatRoomName}>
               {channelName} - {programName}
             </Text>
-            <Text style={styles.chatRoomDescription}>{episodeName}</Text>
           </View>
           {onAir ? (
             <View style={styles.itemContainer}>
